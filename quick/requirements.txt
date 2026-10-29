@@ -1,0 +1,10 @@
+# Google Cloud Run 정렬 알고리즘 스냅샷 서버 의존성 패키지 목록
+# Flask: 경량 웹 프레임워크 (HTTP 요청 처리 및 JSON 응답 반환)
+Flask==3.1.0
+
+# Flask-Cors: 브라우저 및 Google Apps Script 외부 도메인 요청(CORS) 허용
+flask-cors==5.0.0
+
+# Gunicorn: Cloud Run 프로덕션 환경을 위한 WSGI HTTP 서버
+gunicorn==23.0.0
+
