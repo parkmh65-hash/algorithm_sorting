@@ -1,0 +1,23 @@
+# Sensitive environment files
+.env
+.env.*
+*.env
+
+# Python Byte-code & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+algorithm-class-env/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
