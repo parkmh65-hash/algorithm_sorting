@@ -6,7 +6,7 @@
  *   1. Google Cloud Run에 배포된 FastAPI(server/main.py) 서버와 UrlFetchApp으로 통신
  *   2. Cloud Run 서버 URL을 스크립트 환경변수(PropertiesService)에 안전하게 저장/조회
  *   3. GitHub Actions 배포 후 전달되는 doPost(e) 웹훅을 통해 Cloud Run URL 자동 갱신
- *   4. BFS vs DFS 미로 생성 및 탐색 분석 API 호출 중계
+ *   4. BFS vs DFS 미로 생성 및 단계별 히스토그램/스냅샷 탐색 분석 API 중계
  * ============================================================================
  */
 
@@ -87,7 +87,7 @@ function doPost(e) {
 }
 
 /**
- * 백엔드 서버 헬스체크
+ * 백엔드 서버 헬스체크 및 메타데이터 조회
  */
 function checkBackendHealth() {
   const baseUrl = getCloudRunUrl();
@@ -136,9 +136,9 @@ function generateMazeApi(preset, size) {
 }
 
 /**
- * 미로 BFS vs DFS 탐색 API 중계
+ * 미로 BFS vs DFS 탐색 및 단계별 히스토그램 데이터 분석 API 중계
  */
-function solveMazeApi(maze, start, goal) {
+function solveMazeApi(maze, start, goal, maxSteps) {
   const baseUrl = getCloudRunUrl();
   try {
     const res = UrlFetchApp.fetch(baseUrl + '/api/solve', {
@@ -147,7 +147,8 @@ function solveMazeApi(maze, start, goal) {
       payload: JSON.stringify({
         maze: maze,
         start: start || { r: 1, c: 1 },
-        goal: goal || null
+        goal: goal || null,
+        max_steps: maxSteps || 1000
       }),
       muteHttpExceptions: true
     });
