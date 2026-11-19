@@ -690,4 +690,256 @@
   }
 
   function updateStatusIndicators(bfsTxt, dfsTxt) {
-    if (!bfsDone) document.getElementById('bfs-status').textContent = bfsTxt;\n    if (!dfsDone) document.getElementById('dfs-status').textContent = dfsTxt;\n  }\n\n  function renderCanvases() {\n    renderCanvasGrid(bfsCtx, 'BFS');\n    renderCanvasGrid(dfsCtx, 'DFS');\n  }\n\n  function renderCanvasGrid(ctx, mode) {\n    const w = ctx.canvas.width;\n    const h = ctx.canvas.height;\n    ctx.clearRect(0, 0, w, h);\n\n    const cellSize = w / GRID_SIZE;\n\n    // Draw base walls & paths\n    for (let r = 0; r < GRID_SIZE; r++) {\n      for (let c = 0; c < GRID_SIZE; c++) {\n        const x = c * cellSize;\n        const y = r * cellSize;\n\n        if (maze[r][c] === 0) {\n          ctx.fillStyle = '#060e20'; // Wall\n          ctx.fillRect(x, y, cellSize, cellSize);\n        } else {\n          ctx.fillStyle = '#131b2e'; // Corridor\n          ctx.fillRect(x, y, cellSize, cellSize);\n        }\n\n        // Visited shading\n        if (mode === 'BFS' && bfsVisited[r][c]) {\n          ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';\n          ctx.fillRect(x, y, cellSize, cellSize);\n        } else if (mode === 'DFS' && dfsVisited[r][c]) {\n          if (dfsDeadEnds.includes(`${r},${c}`)) {\n            ctx.fillStyle = 'rgba(45, 52, 73, 0.5)'; // Muted dead end\n          } else {\n            ctx.fillStyle = 'rgba(69, 223, 164, 0.16)';\n          }\n          ctx.fillRect(x, y, cellSize, cellSize);\n        }\n      }\n    }\n\n    // Highlighting paths\n    if (mode === 'BFS') {\n      // Draw BFS optimal path if finished\n      if (bfsOptimalPath.length > 0) {\n        ctx.fillStyle = '#ffc174'; // Neon gold highlight\n        ctx.shadowColor = '#ffc174';\n        ctx.shadowBlur = 8;\n        for (let coord of bfsOptimalPath) {\n          const [r, c] = coord.split(',').map(Number);\n          ctx.fillRect(c * cellSize + 2, r * cellSize + 2, cellSize - 4, cellSize - 4);\n        }\n        ctx.shadowBlur = 0;\n      }\n\n      // Draw frontier nodes (Queue)\n      ctx.fillStyle = '#38bdf8';\n      ctx.shadowColor = '#38bdf8';\n      ctx.shadowBlur = 6;\n      for (let q of bfsQueue) {\n        ctx.fillRect(q.c * cellSize + 3, q.r * cellSize + 3, cellSize - 6, cellSize - 6);\n      }\n      ctx.shadowBlur = 0;\n    } else {\n      // DFS Path rendering\n      if (dfsCurrentPath.length > 0) {\n        ctx.fillStyle = 'rgba(69, 223, 164, 0.6)';\n        for (let coord of dfsCurrentPath) {\n          const [r, c] = coord.split(',').map(Number);\n          ctx.fillRect(c * cellSize + 3, r * cellSize + 3, cellSize - 6, cellSize - 6);\n        }\n      }\n\n      // Active probe head (Top of stack)\n      if (dfsStack.length > 0) {\n        const top = dfsStack[dfsStack.length - 1];\n        ctx.fillStyle = '#68fcbf';\n        ctx.shadowColor = '#68fcbf';\n        ctx.shadowBlur = 10;\n        ctx.fillRect(top.c * cellSize + 2, top.r * cellSize + 2, cellSize - 4, cellSize - 4);\n        ctx.shadowBlur = 0;\n      }\n    }\n\n    // Start Node (Green S)\n    const sx = START.c * cellSize;\n    const sy = START.r * cellSize;\n    ctx.fillStyle = '#45dfa4';\n    ctx.fillRect(sx + 2, sy + 2, cellSize - 4, cellSize - 4);\n    ctx.fillStyle = '#003825';\n    ctx.font = 'bold 12px Space Grotesk';\n    ctx.textAlign = 'center';\n    ctx.textBaseline = 'middle';\n    ctx.fillText('S', sx + cellSize / 2, sy + cellSize / 2);\n\n    // Goal Node (Red G)\n    const gx = GOAL.c * cellSize;\n    const gy = GOAL.r * cellSize;\n    ctx.fillStyle = '#ffb4ab';\n    ctx.fillRect(gx + 2, gy + 2, cellSize - 4, cellSize - 4);\n    ctx.fillStyle = '#690005';\n    ctx.font = 'bold 12px Space Grotesk';\n    ctx.fillText('G', gx + cellSize / 2, gy + cellSize / 2);\n  }\n\n  function updateInspectors() {\n    // BFS Queue inspector\n    document.getElementById('bfs-queue-count').textContent = bfsQueue.length;\n    const queueContainer = document.getElementById('bfs-queue-items');\n    queueContainer.innerHTML = '';\n    const sliceQueue = bfsQueue.slice(0, 7);\n    if (sliceQueue.length === 0) {\n      queueContainer.innerHTML = '<span class=\"text-outline text-[11px] italic\">Queue Empty</span>';\n    } else {\n      sliceQueue.forEach((node, idx) => {\n        const span = document.createElement('span');\n        span.className = idx === 0 \n          ? 'px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-bold text-[11px] shadow-sm animate-pulse'\n          : 'px-2 py-0.5 rounded bg-surface-container-high text-primary text-[11px]';\n        span.textContent = `(${node.r},${node.c})`;\n        queueContainer.appendChild(span);\n      });\n      if (bfsQueue.length > 7) {\n        const more = document.createElement('span');\n        more.className = 'text-outline text-[10px]';\n        more.textContent = `+${bfsQueue.length - 7} more`;\n        queueContainer.appendChild(more);\n      }\n    }\n\n    // DFS Stack inspector\n    document.getElementById('dfs-stack-count').textContent = dfsStack.length;\n    document.getElementById('dfs-depth').textContent = dfsStack.length;\n    const stackContainer = document.getElementById('dfs-stack-items');\n    stackContainer.innerHTML = '';\n    const sliceStack = dfsStack.slice(-7).reverse();\n    if (sliceStack.length === 0) {\n      stackContainer.innerHTML = '<span class=\"text-outline text-[11px] italic\">Stack Empty</span>';\n    } else {\n      sliceStack.forEach((node, idx) => {\n        const span = document.createElement('span');\n        span.className = idx === 0 \n          ? 'px-2 py-0.5 rounded bg-secondary text-on-secondary font-bold text-[11px] shadow-sm'\n          : 'px-2 py-0.5 rounded bg-surface-container-high text-secondary text-[11px]';\n        span.textContent = `(${node.r},${node.c})`;\n        stackContainer.appendChild(span);\n      });\n      if (dfsStack.length > 7) {\n        const more = document.createElement('span');\n        more.className = 'text-outline text-[10px]';\n        more.textContent = `...${dfsStack.length - 7} deep`;\n        stackContainer.appendChild(more);\n      }\n    }\n  }\n\n  function updateMetricsUI() {\n    let bfsVisCount = 0;\n    let dfsVisCount = 0;\n    for (let r = 0; r < GRID_SIZE; r++) {\n      for (let c = 0; c < GRID_SIZE; c++) {\n        if (bfsVisited[r][c]) bfsVisCount++;\n        if (dfsVisited[r][c]) dfsVisCount++;\n      }\n    }\n\n    document.getElementById('metric-bfs-visited').textContent = bfsVisCount;\n    document.getElementById('metric-dfs-visited').textContent = dfsVisCount;\n\n    const total = (bfsVisCount + dfsVisCount) || 1;\n    const bfsPct = Math.round((bfsVisCount / total) * 100);\n    document.getElementById('bar-bfs-visited').style.width = bfsPct + '%';\n    document.getElementById('bar-dfs-visited').style.width = (100 - bfsPct) + '%';\n\n    if (bfsVisCount > dfsVisCount) {\n      document.getElementById('visited-diff-msg').textContent = `DFS가 ${bfsVisCount - dfsVisCount}개 노드 적게 탐색`;\n    } else if (dfsVisCount > bfsVisCount) {\n      document.getElementById('visited-diff-msg').textContent = `BFS가 ${dfsVisCount - bfsVisCount}개 노드 적게 탐색`;\n    }\n\n    document.getElementById('metric-bfs-ops').textContent = bfsOps;\n    document.getElementById('metric-dfs-ops').textContent = dfsOps;\n\n    document.getElementById('metric-bfs-time').textContent = bfsElapsed.toFixed(2) + 'ms';\n    document.getElementById('metric-dfs-time').textContent = dfsElapsed.toFixed(2) + 'ms';\n\n    // Path steps\n    if (bfsOptimalPath.length > 0) {\n      document.getElementById('metric-bfs-path').textContent = bfsOptimalPath.length;\n    }\n    if (dfsDone && dfsCurrentPath.length > 0) {\n      document.getElementById('metric-dfs-path').textContent = dfsCurrentPath.length;\n    }\n    if (bfsOptimalPath.length > 0 && dfsDone) {\n      const delta = dfsCurrentPath.length - bfsOptimalPath.length;\n      if (delta === 0) {\n        document.getElementById('metric-path-delta').textContent = '동일 최단 경로';\n        document.getElementById('metric-path-delta').className = 'text-secondary font-bold';\n      } else {\n        document.getElementById('metric-path-delta').textContent = `+${delta} steps (DFS 비최적)`;\n        document.getElementById('metric-path-delta').className = 'text-tertiary font-bold';\n      }\n    }\n  }\n\n  function renderHistogram() {\n    const maxVal = Math.max(10, ...historyBfs, ...historyDfs);\n    const w = 600;\n    const h = 120;\n    const len = historyBfs.length;\n    if (len < 2) return;\n\n    let bfsPts = [];\n    let dfsPts = [];\n\n    for (let i = 0; i < len; i++) {\n      const x = (i / (len - 1)) * w;\n      const yBfs = h - (historyBfs[i] / maxVal) * (h - 20);\n      const yDfs = h - (historyDfs[i] / maxVal) * (h - 20);\n      bfsPts.push({ x, y: yBfs });\n      dfsPts.push({ x, y: yDfs });\n    }\n\n    const bfsLineD = bfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');\n    const dfsLineD = dfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');\n\n    const bfsAreaD = `${bfsLineD} L${w},${h} L0,${h} Z`;\n    const dfsAreaD = `${dfsLineD} L${w},${h} L0,${h} Z`;\n\n    document.getElementById('svg-bfs-line').setAttribute('d', bfsLineD);\n    document.getElementById('svg-dfs-line').setAttribute('d', dfsLineD);\n    document.getElementById('svg-bfs-area').setAttribute('d', bfsAreaD);\n    document.getElementById('svg-dfs-area').setAttribute('d', dfsAreaD);\n  }\n\n  function appendLog(text) {\n    const logs = document.getElementById('telemetry-logs');\n    const div = document.createElement('div');\n    div.className = 'flex items-center gap-2 text-on-surface-variant';\n    const time = ((performance.now() - bfsStartTime) / 1000).toFixed(3);\n    div.innerHTML = `<span class=\"text-secondary\">[${Math.max(0, time)}s]</span><span>${text}</span>`;\n    logs.appendChild(div);\n    logs.scrollTop = logs.scrollHeight;\n  }\n\n  // Initial startup\n  initMaze();\n  resetSimulation();\n</script></main></div></body></html>
+    if (!bfsDone) document.getElementById('bfs-status').textContent = bfsTxt;
+    if (!dfsDone) document.getElementById('dfs-status').textContent = dfsTxt;
+  }
+
+  function renderCanvases() {
+    renderCanvasGrid(bfsCtx, 'BFS');
+    renderCanvasGrid(dfsCtx, 'DFS');
+  }
+
+  function renderCanvasGrid(ctx, mode) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const cellSize = w / GRID_SIZE;
+
+    // Draw base walls & paths
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const x = c * cellSize;
+        const y = r * cellSize;
+
+        if (maze[r][c] === 0) {
+          ctx.fillStyle = '#060e20'; // Wall
+          ctx.fillRect(x, y, cellSize, cellSize);
+        } else {
+          ctx.fillStyle = '#131b2e'; // Corridor
+          ctx.fillRect(x, y, cellSize, cellSize);
+        }
+
+        // Visited shading
+        if (mode === 'BFS' && bfsVisited[r][c]) {
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
+          ctx.fillRect(x, y, cellSize, cellSize);
+        } else if (mode === 'DFS' && dfsVisited[r][c]) {
+          if (dfsDeadEnds.includes(`${r},${c}`)) {
+            ctx.fillStyle = 'rgba(45, 52, 73, 0.5)'; // Muted dead end
+          } else {
+            ctx.fillStyle = 'rgba(69, 223, 164, 0.16)';
+          }
+          ctx.fillRect(x, y, cellSize, cellSize);
+        }
+      }
+    }
+
+    // Highlighting paths
+    if (mode === 'BFS') {
+      // Draw BFS optimal path if finished
+      if (bfsOptimalPath.length > 0) {
+        ctx.fillStyle = '#ffc174'; // Neon gold highlight
+        ctx.shadowColor = '#ffc174';
+        ctx.shadowBlur = 8;
+        for (let coord of bfsOptimalPath) {
+          const [r, c] = coord.split(',').map(Number);
+          ctx.fillRect(c * cellSize + 2, r * cellSize + 2, cellSize - 4, cellSize - 4);
+        }
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw frontier nodes (Queue)
+      ctx.fillStyle = '#38bdf8';
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 6;
+      for (let q of bfsQueue) {
+        ctx.fillRect(q.c * cellSize + 3, q.r * cellSize + 3, cellSize - 6, cellSize - 6);
+      }
+      ctx.shadowBlur = 0;
+    } else {
+      // DFS Path rendering
+      if (dfsCurrentPath.length > 0) {
+        ctx.fillStyle = 'rgba(69, 223, 164, 0.6)';
+        for (let coord of dfsCurrentPath) {
+          const [r, c] = coord.split(',').map(Number);
+          ctx.fillRect(c * cellSize + 3, r * cellSize + 3, cellSize - 6, cellSize - 6);
+        }
+      }
+
+      // Active probe head (Top of stack)
+      if (dfsStack.length > 0) {
+        const top = dfsStack[dfsStack.length - 1];
+        ctx.fillStyle = '#68fcbf';
+        ctx.shadowColor = '#68fcbf';
+        ctx.shadowBlur = 10;
+        ctx.fillRect(top.c * cellSize + 2, top.r * cellSize + 2, cellSize - 4, cellSize - 4);
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // Start Node (Green S)
+    const sx = START.c * cellSize;
+    const sy = START.r * cellSize;
+    ctx.fillStyle = '#45dfa4';
+    ctx.fillRect(sx + 2, sy + 2, cellSize - 4, cellSize - 4);
+    ctx.fillStyle = '#003825';
+    ctx.font = 'bold 12px Space Grotesk';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('S', sx + cellSize / 2, sy + cellSize / 2);
+
+    // Goal Node (Red G)
+    const gx = GOAL.c * cellSize;
+    const gy = GOAL.r * cellSize;
+    ctx.fillStyle = '#ffb4ab';
+    ctx.fillRect(gx + 2, gy + 2, cellSize - 4, cellSize - 4);
+    ctx.fillStyle = '#690005';
+    ctx.font = 'bold 12px Space Grotesk';
+    ctx.fillText('G', gx + cellSize / 2, gy + cellSize / 2);
+  }
+
+  function updateInspectors() {
+    // BFS Queue inspector
+    document.getElementById('bfs-queue-count').textContent = bfsQueue.length;
+    const queueContainer = document.getElementById('bfs-queue-items');
+    queueContainer.innerHTML = '';
+    const sliceQueue = bfsQueue.slice(0, 7);
+    if (sliceQueue.length === 0) {
+      queueContainer.innerHTML = '<span class="text-outline text-[11px] italic">Queue Empty</span>';
+    } else {
+      sliceQueue.forEach((node, idx) => {
+        const span = document.createElement('span');
+        span.className = idx === 0 
+          ? 'px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-bold text-[11px] shadow-sm animate-pulse'
+          : 'px-2 py-0.5 rounded bg-surface-container-high text-primary text-[11px]';
+        span.textContent = `(${node.r},${node.c})`;
+        queueContainer.appendChild(span);
+      });
+      if (bfsQueue.length > 7) {
+        const more = document.createElement('span');
+        more.className = 'text-outline text-[10px]';
+        more.textContent = `+${bfsQueue.length - 7} more`;
+        queueContainer.appendChild(more);
+      }
+    }
+
+    // DFS Stack inspector
+    document.getElementById('dfs-stack-count').textContent = dfsStack.length;
+    document.getElementById('dfs-depth').textContent = dfsStack.length;
+    const stackContainer = document.getElementById('dfs-stack-items');
+    stackContainer.innerHTML = '';
+    const sliceStack = dfsStack.slice(-7).reverse();
+    if (sliceStack.length === 0) {
+      stackContainer.innerHTML = '<span class="text-outline text-[11px] italic">Stack Empty</span>';
+    } else {
+      sliceStack.forEach((node, idx) => {
+        const span = document.createElement('span');
+        span.className = idx === 0 
+          ? 'px-2 py-0.5 rounded bg-secondary text-on-secondary font-bold text-[11px] shadow-sm'
+          : 'px-2 py-0.5 rounded bg-surface-container-high text-secondary text-[11px]';
+        span.textContent = `(${node.r},${node.c})`;
+        stackContainer.appendChild(span);
+      });
+      if (dfsStack.length > 7) {
+        const more = document.createElement('span');
+        more.className = 'text-outline text-[10px]';
+        more.textContent = `...${dfsStack.length - 7} deep`;
+        stackContainer.appendChild(more);
+      }
+    }
+  }
+
+  function updateMetricsUI() {
+    let bfsVisCount = 0;
+    let dfsVisCount = 0;
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (bfsVisited[r][c]) bfsVisCount++;
+        if (dfsVisited[r][c]) dfsVisCount++;
+      }
+    }
+
+    document.getElementById('metric-bfs-visited').textContent = bfsVisCount;
+    document.getElementById('metric-dfs-visited').textContent = dfsVisCount;
+
+    const total = (bfsVisCount + dfsVisCount) || 1;
+    const bfsPct = Math.round((bfsVisCount / total) * 100);
+    document.getElementById('bar-bfs-visited').style.width = bfsPct + '%';
+    document.getElementById('bar-dfs-visited').style.width = (100 - bfsPct) + '%';
+
+    if (bfsVisCount > dfsVisCount) {
+      document.getElementById('visited-diff-msg').textContent = `DFS가 ${bfsVisCount - dfsVisCount}개 노드 적게 탐색`;
+    } else if (dfsVisCount > bfsVisCount) {
+      document.getElementById('visited-diff-msg').textContent = `BFS가 ${dfsVisCount - bfsVisCount}개 노드 적게 탐색`;
+    }
+
+    document.getElementById('metric-bfs-ops').textContent = bfsOps;
+    document.getElementById('metric-dfs-ops').textContent = dfsOps;
+
+    document.getElementById('metric-bfs-time').textContent = bfsElapsed.toFixed(2) + 'ms';
+    document.getElementById('metric-dfs-time').textContent = dfsElapsed.toFixed(2) + 'ms';
+
+    // Path steps
+    if (bfsOptimalPath.length > 0) {
+      document.getElementById('metric-bfs-path').textContent = bfsOptimalPath.length;
+    }
+    if (dfsDone && dfsCurrentPath.length > 0) {
+      document.getElementById('metric-dfs-path').textContent = dfsCurrentPath.length;
+    }
+    if (bfsOptimalPath.length > 0 && dfsDone) {
+      const delta = dfsCurrentPath.length - bfsOptimalPath.length;
+      if (delta === 0) {
+        document.getElementById('metric-path-delta').textContent = '동일 최단 경로';
+        document.getElementById('metric-path-delta').className = 'text-secondary font-bold';
+      } else {
+        document.getElementById('metric-path-delta').textContent = `+${delta} steps (DFS 비최적)`;
+        document.getElementById('metric-path-delta').className = 'text-tertiary font-bold';
+      }
+    }
+  }
+
+  function renderHistogram() {
+    const maxVal = Math.max(10, ...historyBfs, ...historyDfs);
+    const w = 600;
+    const h = 120;
+    const len = historyBfs.length;
+    if (len < 2) return;
+
+    let bfsPts = [];
+    let dfsPts = [];
+
+    for (let i = 0; i < len; i++) {
+      const x = (i / (len - 1)) * w;
+      const yBfs = h - (historyBfs[i] / maxVal) * (h - 20);
+      const yDfs = h - (historyDfs[i] / maxVal) * (h - 20);
+      bfsPts.push({ x, y: yBfs });
+      dfsPts.push({ x, y: yDfs });
+    }
+
+    const bfsLineD = bfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+    const dfsLineD = dfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+
+    const bfsAreaD = `${bfsLineD} L${w},${h} L0,${h} Z`;
+    const dfsAreaD = `${dfsLineD} L${w},${h} L0,${h} Z`;
+
+    document.getElementById('svg-bfs-line').setAttribute('d', bfsLineD);
+    document.getElementById('svg-dfs-line').setAttribute('d', dfsLineD);
+    document.getElementById('svg-bfs-area').setAttribute('d', bfsAreaD);
+    document.getElementById('svg-dfs-area').setAttribute('d', dfsAreaD);
+  }
+
+  function appendLog(text) {
+    const logs = document.getElementById('telemetry-logs');
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-2 text-on-surface-variant';
+    const time = ((performance.now() - bfsStartTime) / 1000).toFixed(3);
+    div.innerHTML = `<span class="text-secondary">[${Math.max(0, time)}s]</span><span>${text}</span>`;
+    logs.appendChild(div);
+    logs.scrollTop = logs.scrollHeight;
+  }
+
+  // Initial startup
+  initMaze();
+  resetSimulation();
+</script></main></div></body></html>
