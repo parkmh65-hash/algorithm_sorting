@@ -1,0 +1,32 @@
+# Sensitive environment files (.env exclusion confirmed)
+.env
+.env.*
+*.env
+.env.local
+.env.development
+.env.production
+
+# Python Byte-code & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+algorithm-class-env/
+ai-class-env/
+
+# Vector DB & Storage
+chroma_db/
+*.db
+*.sqlite3
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
