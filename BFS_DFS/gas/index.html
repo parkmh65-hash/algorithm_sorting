@@ -1,945 +1,1113 @@
 <!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="web_dashboard" name="shell-type"/>
+  <title>ALGO:VISION / BFS vs DFS Maze Graph Explorer</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "tertiary-fixed": "#ffddb8",
+            "primary-container": "#38bdf8",
+            "on-primary-fixed-variant": "#004c69",
+            "surface-container-low": "#131b2e",
+            "on-tertiary-fixed-variant": "#653e00",
+            "secondary": "#45dfa4",
+            "tertiary": "#ffc174",
+            "on-tertiary-fixed": "#2a1700",
+            "on-primary-fixed": "#001e2c",
+            "secondary-fixed-dim": "#45dfa4",
+            "surface-tint": "#7bd0ff",
+            "surface-bright": "#31394d",
+            "on-secondary-fixed": "#002114",
+            "secondary-container": "#00bd85",
+            "on-tertiary": "#472a00",
+            "on-secondary-fixed-variant": "#005137",
+            "surface-variant": "#2d3449",
+            "surface": "#0b1326",
+            "primary-fixed-dim": "#7bd0ff",
+            "tertiary-container": "#f59e0b",
+            "inverse-on-surface": "#283044",
+            "on-tertiary-container": "#613b00",
+            "secondary-fixed": "#68fcbf",
+            "background": "#0b1326",
+            "tertiary-fixed-dim": "#ffb95f",
+            "outline": "#87929a",
+            "error-container": "#93000a",
+            "on-primary": "#00354a",
+            "outline-variant": "#3e484f",
+            "on-secondary": "#003825",
+            "on-surface": "#dae2fd",
+            "on-error": "#690005",
+            "error": "#ffb4ab",
+            "on-error-container": "#ffdad6",
+            "on-background": "#dae2fd",
+            "surface-container-highest": "#2d3449",
+            "primary": "#8ed5ff",
+            "surface-container-high": "#222a3d",
+            "inverse-surface": "#dae2fd",
+            "on-primary-container": "#004965",
+            "primary-fixed": "#c4e7ff",
+            "on-secondary-container": "#00452e",
+            "inverse-primary": "#00668a",
+            "surface-container-lowest": "#060e20",
+            "surface-dim": "#0b1326",
+            "on-surface-variant": "#bdc8d1",
+            "surface-container": "#171f33"
+          },
+          fontFamily: {
+            "display-lg": ["Space Grotesk", "sans-serif"],
+            "headline-sm": ["Space Grotesk", "sans-serif"],
+            "body-md": ["Geist", "sans-serif"],
+            "mono-code": ["JetBrains Mono", "monospace"],
+            "mono-metric": ["JetBrains Mono", "monospace"],
+            "label-caps": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #060e20; }
+    ::-webkit-scrollbar-thumb { background: #222a3d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+  </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
 
-<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"tertiary-fixed":"#ffddb8","primary-container":"#38bdf8","on-primary-fixed-variant":"#004c69","surface-container-low":"#131b2e","on-tertiary-fixed-variant":"#653e00","secondary":"#45dfa4","tertiary":"#ffc174","on-tertiary-fixed":"#2a1700","on-primary-fixed":"#001e2c","secondary-fixed-dim":"#45dfa4","surface-tint":"#7bd0ff","surface-bright":"#31394d","on-secondary-fixed":"#002114","secondary-container":"#00bd85","on-tertiary":"#472a00","on-secondary-fixed-variant":"#005137","surface-variant":"#2d3449","surface":"#0b1326","primary-fixed-dim":"#7bd0ff","tertiary-container":"#f59e0b","inverse-on-surface":"#283044","on-tertiary-container":"#613b00","secondary-fixed":"#68fcbf","background":"#0b1326","tertiary-fixed-dim":"#ffb95f","outline":"#87929a","error-container":"#93000a","on-primary":"#00354a","outline-variant":"#3e484f","on-secondary":"#003825","on-surface":"#dae2fd","on-error":"#690005","error":"#ffb4ab","on-error-container":"#ffdad6","on-background":"#dae2fd","surface-container-highest":"#2d3449","primary":"#8ed5ff","surface-container-high":"#222a3d","inverse-surface":"#dae2fd","on-primary-container":"#004965","primary-fixed":"#c4e7ff","on-secondary-container":"#00452e","inverse-primary":"#00668a","surface-container-lowest":"#060e20","surface-dim":"#0b1326","on-surface-variant":"#bdc8d1","surface-container":"#171f33"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"space-md":"1rem","gutter":"1rem","space-sm":"0.5rem","space-xl":"2rem","space-xs":"0.25rem","space-lg":"1.5rem","gutter-lg":"1.5rem","margin-lg":"2rem","margin":"1rem"},fontFamily:{"display-lg-mobile":["Space Grotesk"],"headline-md":["Space Grotesk"],"body-lg":["Geist"],"mono-code":["JetBrains Mono"],"body-sm":["Geist"],"headline-sm":["Space Grotesk"],"display-lg":["Space Grotesk"],"body-md":["Geist"],"mono-metric":["JetBrains Mono"],"label-caps":["JetBrains Mono"]},fontSize:{"display-lg-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"400"}],"mono-code":["13px",{"lineHeight":"18px","letterSpacing":"0em","fontWeight":"500"}],"body-sm":["12px",{"lineHeight":"16px","letterSpacing":"0em","fontWeight":"400"}],"headline-sm":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"display-lg":["36px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"400"}],"mono-metric":["20px",{"lineHeight":"26px","letterSpacing":"-0.02em","fontWeight":"600"}],"label-caps":["11px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"600"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-16 w-full px-gutter-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg shrink-0"><div class="flex items-center gap-space-sm"><div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container shadow-[0_0_12px_rgba(56,189,248,0.25)]"><span class="material-symbols-outlined text-[18px]">hub</span></div><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface font-bold">ALGO:VISION <span class="text-outline font-normal text-body-sm">/ Maze Graph Explorer</span></span></div><div class="hidden xl:flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-low"><span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(69,223,164,0.6)] animate-pulse"></span><span class="font-mono-code text-body-sm text-secondary">Connected</span><span class="font-mono-code text-[11px] text-outline">(code.gs / main.py Bridge)</span></div></div><div class="flex items-center gap-space-md flex-1 justify-center max-w-3xl"><div class="flex items-center rounded-lg bg-surface-container p-0.5 shadow-inner"><button class="flex items-center gap-1.5 px-space-md py-1.5 rounded bg-primary-container text-on-primary-container font-mono-code text-body-sm font-semibold shadow-[0_0_10px_rgba(56,189,248,0.35)] transition-all" type="button"><span class="material-symbols-outlined text-[16px]">play_arrow</span><span>실행 / 시작</span></button><button class="flex items-center gap-1.5 px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-mono-code text-body-sm transition-all" type="button"><span class="material-symbols-outlined text-[16px]">pause</span><span>정지</span></button><button class="flex items-center gap-1.5 px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-mono-code text-body-sm transition-all" type="button"><span class="material-symbols-outlined text-[16px]">restart_alt</span><span>초기화</span></button></div><div class="hidden lg:flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded-lg"><span class="font-label-caps text-label-caps text-outline uppercase">Speed</span><input class="w-24 h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary-container" max="100" min="1" type="range" value="65"/><span class="font-mono-code text-body-sm text-primary">35ms</span></div><div class="hidden md:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-lg"><span class="font-label-caps text-label-caps text-outline uppercase pl-1">Preset:</span><select class="bg-surface-container-high text-on-surface font-mono-code text-body-sm rounded px-2 py-1 outline-none cursor-pointer"><option>Recursive Backtracker (31x31)</option><option>Kruskal Minimum Spanning</option><option>Prim Dense Sparse Hybrid</option><option>Braid Labyrinth (Zero Dead-Ends)</option></select></div></div><div class="flex items-center gap-space-md shrink-0"><div class="hidden 2xl:flex items-center gap-space-xs font-mono-code text-[11px] text-outline bg-surface-container-low px-2 py-1 rounded"><span>FPS: <strong class="text-secondary">60.0</strong></span><span class="text-outline-variant">|</span><span>HEAP: <strong class="text-on-surface">14.2MB</strong></span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-40 flex flex-col pt-20 pb-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.3)]"><div class="px-space-lg mb-space-md"><span class="font-label-caps text-label-caps text-outline uppercase tracking-widest">Telemetry Workspaces</span></div><nav class="flex-1 px-space-sm flex flex-col gap-1" data-active-classes="bg-surface-container-high text-primary font-semibold"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg transition-all bg-surface-container-high text-primary font-semibold" data-path="workbench-comparison" href="#"><span class="material-symbols-outlined text-[18px]">compare_arrows</span>Dual Workbench</a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-headline-sm text-body-md" data-path="frontier-queue-inspector" href="#"><span class="material-symbols-outlined text-[18px]">view_timeline</span>Frontier &amp; Stack</a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-headline-sm text-body-md" data-path="benchmark-analytics" href="#"><span class="material-symbols-outlined text-[18px]">analytics</span>Execution Metrics</a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-headline-sm text-body-md" data-path="graph-generator" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span>Maze Matrix Studio</a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-headline-sm text-body-md" data-path="bridge-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings_input_component</span>Bridge Configuration</a></nav><div class="px-space-md pt-space-md mt-auto"><div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1 font-mono-code text-[11px]"><span class="text-outline">Active Channel</span><div class="flex items-center justify-between text-secondary"><span>BFS: Cyan Frontier</span><span class="w-1.5 h-1.5 rounded-full bg-primary-container shadow-[0_0_6px_rgba(56,189,248,0.5)]"></span></div><div class="flex items-center justify-between text-secondary-fixed-dim"><span>DFS: Mint Depth</span><span class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_6px_rgba(69,223,164,0.5)]"></span></div></div></div></aside><div class="pl-64"><main class="relative pt-16 min-h-screen bg-surface w-full p-gutter-lg"><div class="flex flex-col w-full gap-space-lg">
-<!-- Operational Telemetry Bar & Engine Sub-Header -->
-<div class="w-full bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-wrap items-center justify-between gap-space-md">
-<div class="flex items-center gap-space-md flex-wrap">
-<div class="flex items-center gap-2 bg-surface-container px-space-md py-1.5 rounded-lg shadow-sm">
-<span class="relative flex h-2.5 w-2.5">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary shadow-[0_0_8px_rgba(69,223,164,0.9)]"></span>
-</span>
-<span class="font-mono-code text-body-sm text-secondary font-semibold">ONLINE</span>
-<span class="text-outline text-body-sm">|</span>
-<span class="font-mono-code text-[11px] text-on-surface-variant">Python Kernel :8000 ← Google Apps Script Bridge (@code.gs)</span>
-</div>
-<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-lg">
-<span class="font-label-caps text-label-caps text-outline uppercase">Labyrinth Model:</span>
-<span class="font-mono-code text-body-sm text-primary font-medium">DFS Backtracker (21x21 Grid)</span>
-</div>
-</div>
-<!-- Interactive Execution Switchboard -->
-<div class="flex items-center gap-space-sm flex-wrap">
-<div class="flex items-center bg-surface-container rounded-lg p-1 shadow-inner">
-<button class="flex items-center gap-1.5 px-space-md py-1.5 rounded-lg bg-primary-container text-on-primary-container font-mono-code text-body-sm font-semibold shadow-[0_0_14px_rgba(56,189,248,0.45)] hover:brightness-110 active:scale-95 transition-all" id="btn-run" onclick="toggleExecution()">
-<span class="material-symbols-outlined text-[16px]" id="btn-run-icon">play_arrow</span>
-<span id="btn-run-label">동시 탐색 시작</span>
-</button>
-<button class="flex items-center gap-1 px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all font-mono-code text-body-sm" onclick="pauseExecution()">
-<span class="material-symbols-outlined text-[16px]">pause</span>
-<span>일시정지</span>
-</button>
-<button class="flex items-center gap-1 px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all font-mono-code text-body-sm" onclick="resetSimulation()">
-<span class="material-symbols-outlined text-[16px]">restart_alt</span>
-<span>초기화</span>
-</button>
-</div>
-<button class="flex items-center gap-1 px-space-md py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono-code text-body-sm shadow-sm transition-all" onclick="generateNewMaze()">
-<span class="material-symbols-outlined text-[16px] text-tertiary">shuffle</span>
-<span>새 미로 생성</span>
-</button>
-<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-lg">
-<span class="font-label-caps text-label-caps text-outline uppercase">Rate:</span>
-<button class="speed-btn px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-mono-code text-[11px]" onclick="setSpeed(1, this)">1x</button>
-<button class="speed-btn px-2 py-0.5 rounded bg-surface-container-high text-primary font-mono-code text-[11px] font-bold" onclick="setSpeed(2, this)">2x</button>
-<button class="speed-btn px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-mono-code text-[11px]" onclick="setSpeed(5, this)">5x</button>
-<button class="speed-btn px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-mono-code text-[11px]" onclick="setSpeed(10, this)">MAX</button>
-</div>
-</div>
-</div>
-<!-- Dual Algorithmic Viewports (50/50 Split) -->
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-space-lg w-full">
-<!-- LEFT PANEL: BREADTH-FIRST SEARCH (BFS) -->
-<div class="flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-lg">
-<!-- Algorithm Meta Header -->
-<div class="p-space-md bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm">
-<div class="flex items-center gap-space-sm">
-<div class="w-8 h-8 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary-container shadow-[0_0_12px_rgba(56,189,248,0.3)]">
-<span class="material-symbols-outlined text-[20px]">waves</span>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">너비 우선 탐색 (BFS)</h2>
-<span class="px-2 py-0.5 rounded font-mono-code text-[11px] font-semibold bg-primary-container/20 text-primary-container">Queue (FIFO)</span>
-</div>
-<p class="font-body-sm text-body-sm text-outline">Wavefront Propagation • 최단 경로 보장 탐색</p>
-</div>
-</div>
-<div class="flex items-center gap-space-sm">
-<div class="px-space-sm py-1 rounded bg-surface-container-lowest text-right font-mono-code">
-<div class="text-[10px] text-outline uppercase font-label-caps">Status</div>
-<div class="text-[12px] text-primary-container font-semibold" id="bfs-status">탐색 준비 완료</div>
-</div>
-<div class="px-space-sm py-1 rounded bg-surface-container-lowest text-right font-mono-code">
-<div class="text-[10px] text-outline uppercase font-label-caps">Memory Peak</div>
-<div class="text-[12px] text-on-surface font-semibold" id="bfs-memory">32.8 KB</div>
-</div>
-</div>
-</div>
-<!-- Quick Complexity Callout -->
-<div class="px-space-md py-1.5 bg-surface-container flex items-center justify-between text-on-surface-variant font-mono-code text-[11px]">
-<div class="flex items-center gap-space-md">
-<span>시간 복잡도: <strong class="text-primary font-semibold">O(V + E)</strong></span>
-<span class="text-outline-variant">|</span>
-<span>공간 복잡도: <strong class="text-primary font-semibold">O(V)</strong></span>
-</div>
-<span class="text-primary-container font-medium flex items-center gap-1">
-<span class="material-symbols-outlined text-[13px]">verified</span> 최단 거리 보장 (Unweighted)
-        </span>
-</div>
-<!-- Maze Viewport Screen -->
-<div class="p-space-md flex flex-col items-center justify-center bg-surface-container-lowest">
-<div class="relative w-full max-w-[540px] aspect-square p-2 bg-surface rounded-lg shadow-inner flex items-center justify-center">
-<canvas class="w-full h-full rounded shadow-md" height="480" id="bfsCanvas" width="480"></canvas>
-<div class="absolute top-4 left-4 flex flex-col gap-1 pointer-events-none">
-<span class="px-2 py-0.5 rounded bg-surface-container-high/90 text-primary-container font-mono-code text-[10px] shadow backdrop-blur">
-              Wave Depth: <span class="font-bold" id="bfs-depth">0</span>
-</span>
-</div>
-</div>
-</div>
-<!-- Legend Indicator -->
-<div class="px-space-md py-2 bg-surface-container flex flex-wrap items-center justify-between gap-space-sm text-[11px] font-mono-code">
-<div class="flex items-center gap-3">
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-secondary"></span><span class="text-on-surface">출발 S</span></div>
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-error"></span><span class="text-on-surface">도착 G</span></div>
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-primary-container shadow-[0_0_6px_rgba(56,189,248,0.8)]"></span><span class="text-primary-container">Frontier 헤드</span></div>
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-primary/30"></span><span class="text-outline">전파된 파면</span></div>
-</div>
-<div class="flex items-center gap-1">
-<span class="w-2.5 h-2.5 rounded bg-tertiary shadow-[0_0_6px_rgba(255,193,116,0.8)]"></span>
-<span class="text-tertiary font-semibold">최적 역추적 경로</span>
-</div>
-</div>
-<!-- Data Structure Inspector: Queue FIFO Drawer -->
-<div class="p-space-md bg-surface-container-low flex flex-col gap-space-xs">
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[16px] text-primary-container">table_rows</span>
-<span class="font-label-caps text-label-caps uppercase text-on-surface tracking-wider">Frontier Queue [FIFO 구조]</span>
-</div>
-<span class="font-mono-code text-[11px] text-outline">대기 원소: <span class="text-primary font-bold" id="bfs-queue-count">0</span>개</span>
-</div>
-<div class="relative w-full h-14 bg-surface-container-lowest rounded-lg p-2 flex items-center overflow-x-auto gap-2 shadow-inner" id="bfs-queue-stream">
-<!-- Pop indicator -->
-<div class="shrink-0 flex items-center gap-1 pr-2 text-primary font-mono-code text-[10px]">
-<span class="material-symbols-outlined text-[14px]">arrow_back</span>
-<span>DEQUEUE</span>
-</div>
-<!-- Dynamic queue pills -->
-<div class="flex items-center gap-1.5 text-on-surface font-mono-code text-[11px]" id="bfs-queue-items">
-<span class="px-2 py-1 rounded bg-surface-container-high text-outline text-[11px]">(0, 0)</span>
-</div>
-<!-- Push indicator -->
-<div class="shrink-0 flex items-center gap-1 pl-2 text-outline font-mono-code text-[10px] ml-auto">
-<span>ENQUEUE</span>
-<span class="material-symbols-outlined text-[14px]">subdirectory_arrow_left</span>
-</div>
-</div>
-</div>
-</div>
-<!-- RIGHT PANEL: DEPTH-FIRST SEARCH (DFS) -->
-<div class="flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-lg">
-<!-- Algorithm Meta Header -->
-<div class="p-space-md bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm">
-<div class="flex items-center gap-space-sm">
-<div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center text-secondary shadow-[0_0_12px_rgba(69,223,164,0.3)]">
-<span class="material-symbols-outlined text-[20px]">explore</span>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">깊이 우선 탐색 (DFS)</h2>
-<span class="px-2 py-0.5 rounded font-mono-code text-[11px] font-semibold bg-secondary/20 text-secondary">Stack (LIFO) / 재귀</span>
-</div>
-<p class="font-body-sm text-body-sm text-outline">Corridor Probing • 백트래킹 전체 경로 탐험</p>
-</div>
-</div>
-<div class="flex items-center gap-space-sm">
-<div class="px-space-sm py-1 rounded bg-surface-container-lowest text-right font-mono-code">
-<div class="text-[10px] text-outline uppercase font-label-caps">Status</div>
-<div class="text-[12px] text-secondary font-semibold" id="dfs-status">탐색 준비 완료</div>
-</div>
-<div class="px-space-sm py-1 rounded bg-surface-container-lowest text-right font-mono-code">
-<div class="text-[10px] text-outline uppercase font-label-caps">Memory Peak</div>
-<div class="text-[12px] text-on-surface font-semibold" id="dfs-memory">4.2 KB</div>
-</div>
-</div>
-</div>
-<!-- Quick Complexity Callout -->
-<div class="px-space-md py-1.5 bg-surface-container flex items-center justify-between text-on-surface-variant font-mono-code text-[11px]">
-<div class="flex items-center gap-space-md">
-<span>시간 복잡도: <strong class="text-secondary font-semibold">O(V + E)</strong></span>
-<span class="text-outline-variant">|</span>
-<span>공간 복잡도: <strong class="text-secondary font-semibold">O(h)</strong> (h = 트리 높이)</span>
-</div>
-<span class="text-tertiary-fixed-dim font-medium flex items-center gap-1">
-<span class="material-symbols-outlined text-[13px]">warning</span> 비최적 경로 가능성 (Sub-optimal)
-        </span>
-</div>
-<!-- Maze Viewport Screen -->
-<div class="p-space-md flex flex-col items-center justify-center bg-surface-container-lowest">
-<div class="relative w-full max-w-[540px] aspect-square p-2 bg-surface rounded-lg shadow-inner flex items-center justify-center">
-<canvas class="w-full h-full rounded shadow-md" height="480" id="dfsCanvas" width="480"></canvas>
-<div class="absolute top-4 left-4 flex flex-col gap-1 pointer-events-none">
-<span class="px-2 py-0.5 rounded bg-surface-container-high/90 text-secondary font-mono-code text-[10px] shadow backdrop-blur">
-              Recursion Stack: <span class="font-bold" id="dfs-depth">0</span>
-</span>
-</div>
-</div>
-</div>
-<!-- Legend Indicator -->
-<div class="px-space-md py-2 bg-surface-container flex flex-wrap items-center justify-between gap-space-sm text-[11px] font-mono-code">
-<div class="flex items-center gap-3">
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-secondary"></span><span class="text-on-surface">출발 S</span></div>
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-error"></span><span class="text-on-surface">도착 G</span></div>
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-secondary shadow-[0_0_6px_rgba(69,223,164,0.8)]"></span><span class="text-secondary">탐침 헤드</span></div>
-<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-secondary/40"></span><span class="text-outline">현재 진행 경로</span></div>
-</div>
-<div class="flex items-center gap-1">
-<span class="w-2.5 h-2.5 rounded bg-surface-variant text-outline"></span>
-<span class="text-outline">막다른 길 (Backtracked)</span>
-</div>
-</div>
-<!-- Data Structure Inspector: Call Stack Drawer -->
-<div class="p-space-md bg-surface-container-low flex flex-col gap-space-xs">
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[16px] text-secondary">layers</span>
-<span class="font-label-caps text-label-caps uppercase text-on-surface tracking-wider">Call Stack [LIFO 구조]</span>
-</div>
-<span class="font-mono-code text-[11px] text-outline">현재 스택 깊이: <span class="text-secondary font-bold" id="dfs-stack-count">0</span></span>
-</div>
-<div class="relative w-full h-14 bg-surface-container-lowest rounded-lg p-2 flex items-center overflow-x-auto gap-2 shadow-inner" id="dfs-stack-stream">
-<!-- Stack Top marker -->
-<div class="shrink-0 flex items-center gap-1 pr-2 text-secondary font-mono-code text-[10px] font-bold">
-<span class="material-symbols-outlined text-[14px]">vertical_align_top</span>
-<span>TOP (POP/PUSH)</span>
-</div>
-<!-- Dynamic stack pills -->
-<div class="flex items-center gap-1.5 text-on-surface font-mono-code text-[11px]" id="dfs-stack-items">
-<span class="px-2 py-1 rounded bg-secondary/20 text-secondary font-semibold text-[11px]">(0, 0)</span>
-</div>
-<!-- Stack Base marker -->
-<div class="shrink-0 flex items-center gap-1 pl-2 text-outline font-mono-code text-[10px] ml-auto">
-<span>ROOT [0]</span>
-<span class="material-symbols-outlined text-[14px]">south</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Real-Time Comparative Metrics Dashboard & Histograms -->
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-space-md w-full">
-<!-- KPI Metric Card: Visited Nodes -->
-<div class="bg-surface-container-low p-space-md rounded-xl shadow-sm flex flex-col justify-between">
-<div class="flex items-center justify-between mb-2">
-<span class="font-label-caps text-label-caps text-outline uppercase">총 탐색 노드 수 (Visited)</span>
-<span class="material-symbols-outlined text-[18px] text-primary">scatter_plot</span>
-</div>
-<div class="grid grid-cols-2 gap-2 my-1">
-<div>
-<span class="font-mono-code text-[11px] text-primary-container">BFS 너비탐색</span>
-<div class="font-mono-metric text-mono-metric text-on-surface font-bold" id="metric-bfs-visited">0</div>
-</div>
-<div>
-<span class="font-mono-code text-[11px] text-secondary">DFS 깊이탐색</span>
-<div class="font-mono-metric text-mono-metric text-on-surface font-bold" id="metric-dfs-visited">0</div>
-</div>
-</div>
-<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden flex mt-2">
-<div class="bg-primary-container h-full transition-all duration-300" id="bar-bfs-visited" style="width: 50%;"></div>
-<div class="bg-secondary h-full transition-all duration-300" id="bar-dfs-visited" style="width: 50%;"></div>
-</div>
-<div class="flex justify-between items-center text-[10px] font-mono-code text-outline mt-1.5">
-<span id="visited-diff-msg">동시 관측 대기 중</span>
-<span>Grid: 441 Cells</span>
-</div>
-</div>
-<!-- KPI Metric Card: Path Length -->
-<div class="bg-surface-container-low p-space-md rounded-xl shadow-sm flex flex-col justify-between">
-<div class="flex items-center justify-between mb-2">
-<span class="font-label-caps text-label-caps text-outline uppercase">최종 해 탐색 경로 (Steps)</span>
-<span class="material-symbols-outlined text-[18px] text-tertiary">route</span>
-</div>
-<div class="grid grid-cols-2 gap-2 my-1">
-<div>
-<span class="font-mono-code text-[11px] text-primary-container">BFS 최단보장</span>
-<div class="font-mono-metric text-mono-metric text-primary font-bold" id="metric-bfs-path">--</div>
-</div>
-<div>
-<span class="font-mono-code text-[11px] text-secondary">DFS 경로길이</span>
-<div class="font-mono-metric text-mono-metric text-secondary font-bold" id="metric-dfs-path">--</div>
-</div>
-</div>
-<div class="p-1.5 rounded bg-surface-container-lowest mt-1 flex items-center justify-between text-[11px] font-mono-code">
-<span class="text-outline">최적성 차이 (Delta):</span>
-<span class="text-tertiary font-bold" id="metric-path-delta">대기 중</span>
-</div>
-</div>
-<!-- KPI Metric Card: Operations / Iterations -->
-<div class="bg-surface-container-low p-space-md rounded-xl shadow-sm flex flex-col justify-between">
-<div class="flex items-center justify-between mb-2">
-<span class="font-label-caps text-label-caps text-outline uppercase">연산 루프 횟수 (Ops)</span>
-<span class="material-symbols-outlined text-[18px] text-secondary">memory</span>
-</div>
-<div class="grid grid-cols-2 gap-2 my-1">
-<div>
-<span class="font-mono-code text-[11px] text-primary-container">BFS Enq/Deq</span>
-<div class="font-mono-metric text-mono-metric text-on-surface font-bold" id="metric-bfs-ops">0</div>
-</div>
-<div>
-<span class="font-mono-code text-[11px] text-secondary">DFS Push/Pop</span>
-<div class="font-mono-metric text-mono-metric text-on-surface font-bold" id="metric-dfs-ops">0</div>
-</div>
-</div>
-<div class="text-[11px] font-mono-code text-on-surface-variant flex items-center gap-1.5 mt-1">
-<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-<span id="ops-speed-indicator">스레드 틱: 40ms/cycle</span>
-</div>
-</div>
-<!-- KPI Metric Card: Time Elapsed -->
-<div class="bg-surface-container-low p-space-md rounded-xl shadow-sm flex flex-col justify-between">
-<div class="flex items-center justify-between mb-2">
-<span class="font-label-caps text-label-caps text-outline uppercase">소요 시간 (Elapsed Time)</span>
-<span class="material-symbols-outlined text-[18px] text-primary-container">timer</span>
-</div>
-<div class="grid grid-cols-2 gap-2 my-1">
-<div>
-<span class="font-mono-code text-[11px] text-primary-container">BFS Time</span>
-<div class="font-mono-metric text-mono-metric text-on-surface font-bold" id="metric-bfs-time">0.00ms</div>
-</div>
-<div>
-<span class="font-mono-code text-[11px] text-secondary">DFS Time</span>
-<div class="font-mono-metric text-mono-metric text-on-surface font-bold" id="metric-dfs-time">0.00ms</div>
-</div>
-</div>
-<div class="text-[11px] font-mono-code text-outline flex items-center justify-between mt-1">
-<span>프레임 레이트:</span>
-<span class="text-secondary font-semibold">60.0 FPS 안정</span>
-</div>
-</div>
-</div>
-<!-- Deep Architecture: Dynamic Frontier Growth Histogram & REST Pipeline -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg w-full">
-<!-- Frontier Size Progression Chart -->
-<div class="lg:col-span-7 bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col justify-between">
-<div class="flex items-center justify-between mb-space-sm">
-<div>
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[18px] text-primary-container">bar_chart</span>
-<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Frontier Queue 크기 vs Call Stack 깊이 추이</h3>
-</div>
-<p class="font-body-sm text-body-sm text-outline">탐색 주기별 자료구조 메모리 소비량의 기하급수적 차이</p>
-</div>
-<div class="flex items-center gap-3 font-mono-code text-[11px]">
-<span class="flex items-center gap-1 text-primary-container"><span class="w-3 h-1 bg-primary-container rounded"></span>BFS Queue</span>
-<span class="flex items-center gap-1 text-secondary"><span class="w-3 h-1 bg-secondary rounded"></span>DFS Stack</span>
-</div>
-</div>
-<!-- Real-time SVG Vector Histogram -->
-<div class="w-full h-44 bg-surface-container-lowest rounded-lg p-3 relative flex items-end">
-<svg class="w-full h-full overflow-visible" id="histogramSvg" preserveaspectratio="none" viewbox="0 0 600 120">
-<defs>
-<lineargradient id="bfsGradient" x1="0" x2="0" y1="0" y2="1">
-<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"></stop>
-<stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0"></stop>
-</lineargradient>
-<lineargradient id="dfsGradient" x1="0" x2="0" y1="0" y2="1">
-<stop offset="0%" stop-color="#45dfa4" stop-opacity="0.45"></stop>
-<stop offset="100%" stop-color="#45dfa4" stop-opacity="0.0"></stop>
-</lineargradient>
-</defs>
-<!-- Grid lines -->
-<line stroke="#222a3d" stroke-dasharray="3,3" x1="0" x2="600" y1="30" y2="30"></line>
-<line stroke="#222a3d" stroke-dasharray="3,3" x1="0" x2="600" y1="60" y2="60"></line>
-<line stroke="#222a3d" stroke-dasharray="3,3" x1="0" x2="600" y1="90" y2="90"></line>
-<!-- Dynamic Path Polylines -->
-<path d="M0,120 L0,120 L600,120 Z" fill="url(#bfsGradient)" id="svg-bfs-area"></path>
-<path d="M0,120 L0,120 L600,120 Z" fill="url(#dfsGradient)" id="svg-dfs-area"></path>
-<path d="M0,120 L600,120" fill="none" id="svg-bfs-line" stroke="#38bdf8" stroke-width="2"></path>
-<path d="M0,120 L600,120" fill="none" id="svg-dfs-line" stroke="#45dfa4" stroke-width="2"></path>
-</svg>
-<div class="absolute top-2 left-3 font-mono-code text-[10px] text-outline">Max Capacity Peak: 48 Nodes</div>
-<div class="absolute bottom-1 right-3 font-mono-code text-[10px] text-outline">Execution Ticks →</div>
-</div>
-<div class="flex items-center justify-between text-outline font-mono-code text-[11px] mt-2">
-<span>• BFS는 레벨 파면이 확장될수록 메모리(Queue) 급증</span>
-<span>• DFS는 경로 깊이(h)에만 비례하여 메모리 극소화</span>
-</div>
-</div>
-<!-- REST & Script Bridge Console -->
-<div class="lg:col-span-5 bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col justify-between">
-<div>
-<div class="flex items-center justify-between mb-space-xs">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[18px] text-tertiary">terminal</span>
-<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Bridge Telemetry</h3>
-</div>
-<span class="px-2 py-0.5 rounded bg-surface-container text-secondary font-mono-code text-[11px]">JSON-RPC 2.0</span>
-</div>
-<p class="font-body-sm text-body-sm text-outline mb-space-sm">Apps Script (@code.gs) ↔ Python FastAPI (@main.py) 스트림 로그</p>
-</div>
-<!-- Terminal Output Window -->
-<div class="w-full bg-surface-container-lowest rounded-lg p-space-sm font-mono-code text-[11px] text-on-surface-variant flex flex-col gap-1.5 overflow-hidden h-44 shadow-inner" id="telemetry-logs">
-<div class="flex items-center gap-2 text-outline">
-<span class="text-secondary">[0.000s]</span>
-<span>POST /api/v1/maze/generate → 21x21 (seed: 0x9AF4) 200 OK</span>
-</div>
-<div class="flex items-center gap-2 text-primary-container">
-<span class="text-secondary">[0.012s]</span>
-<span>POST /api/v1/solve/bfs → queue_init node=(0,0) status=READY</span>
-</div>
-<div class="flex items-center gap-2 text-secondary">
-<span class="text-secondary">[0.014s]</span>
-<span>POST /api/v1/solve/dfs → stack_push node=(0,0) depth=0</span>
-</div>
-<div class="flex items-center gap-2 text-tertiary">
-<span class="text-secondary">[0.089s]</span>
-<span>GAS code.gs • syncBridgePayload() synchronized 2 worker tasks</span>
-</div>
-<div class="flex items-center gap-2 text-outline mt-auto pt-1">
-<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
-<span class="text-on-surface">Listening for telemetry frames from worker...</span>
-</div>
-</div>
-<div class="flex items-center justify-between text-outline font-mono-code text-[10px] mt-2">
-<span>Payload: 1.4KB/req</span>
-<span>Latency: <strong class="text-secondary">4.2ms</strong></span>
-<span>Proxy: AppsScript v8 Engine</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Vanilla JS Simulation Controller -->
-<script>
-  // Simulation & Grid Configuration
-  const GRID_SIZE = 21; // 21x21
-  let maze = [];
-  let isRunning = false;
-  let timerId = null;
-  let tickDelay = 35;
+  <!-- Header Navigation Bar -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.4)]">
+    <div class="h-16 w-full px-4 lg:px-6 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container shadow-[0_0_12px_rgba(56,189,248,0.25)]">
+            <span class="material-symbols-outlined text-[20px]">hub</span>
+          </div>
+          <span class="font-display-lg text-lg lg:text-xl font-bold tracking-tight text-on-surface">
+            ALGO:VISION <span class="text-outline font-normal text-sm">/ BFS vs DFS Maze Explorer</span>
+          </span>
+        </div>
+        <div class="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low border border-outline-variant/30">
+          <span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(69,223,164,0.8)] animate-pulse"></span>
+          <span class="font-mono-code text-xs text-secondary font-semibold" id="conn-status-text">Client Engine Active</span>
+          <span class="font-mono-code text-[11px] text-outline" id="conn-bridge-text">(@code.gs Bridge Ready)</span>
+        </div>
+      </div>
 
-  // BFS State
-  let bfsQueue = [];
-  let bfsVisited = [];
-  let bfsParent = {};
-  let bfsDone = false;
-  let bfsOptimalPath = [];
-  let bfsOps = 0;
-  let bfsStartTime = 0;
-  let bfsElapsed = 0;
+      <!-- Execution Switchboard -->
+      <div class="flex items-center gap-3 flex-1 justify-center max-w-2xl">
+        <div class="flex items-center rounded-lg bg-surface-container p-1 shadow-inner gap-1">
+          <button id="btn-run" onclick="toggleExecution()" class="flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary-container text-on-primary-container font-mono-code text-xs font-semibold shadow-[0_0_10px_rgba(56,189,248,0.35)] hover:brightness-110 active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[16px]" id="btn-run-icon">play_arrow</span>
+            <span id="btn-run-label">동시 탐색 시작</span>
+          </button>
+          <button onclick="pauseExecution()" class="flex items-center gap-1 px-3 py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-mono-code text-xs transition-all">
+            <span class="material-symbols-outlined text-[16px]">pause</span>
+            <span>일시정지</span>
+          </button>
+          <button onclick="resetSimulation()" class="flex items-center gap-1 px-3 py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-mono-code text-xs transition-all">
+            <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+            <span>초기화</span>
+          </button>
+        </div>
 
-  // DFS State
-  let dfsStack = [];
-  let dfsVisited = [];
-  let dfsParent = {};
-  let dfsDeadEnds = [];
-  let dfsCurrentPath = [];
-  let dfsDone = false;
-  let dfsOps = 0;
-  let dfsStartTime = 0;
-  let dfsElapsed = 0;
+        <button onclick="generateNewMaze()" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono-code text-xs shadow-sm transition-all">
+          <span class="material-symbols-outlined text-[16px] text-tertiary">shuffle</span>
+          <span>새 미로 생성</span>
+        </button>
 
-  // Histograms
-  let historyBfs = [];
-  let historyDfs = [];
+        <div class="hidden md:flex items-center gap-2 bg-surface-container-low px-3 py-1 rounded-lg">
+          <span class="font-label-caps text-[11px] text-outline uppercase">속도:</span>
+          <button onclick="setSpeed(1, this)" class="speed-btn px-2 py-0.5 rounded text-on-surface-variant text-[11px] font-mono-code">1x</button>
+          <button onclick="setSpeed(2, this)" class="speed-btn px-2 py-0.5 rounded bg-surface-container-high text-primary font-bold text-[11px] font-mono-code">2x</button>
+          <button onclick="setSpeed(5, this)" class="speed-btn px-2 py-0.5 rounded text-on-surface-variant text-[11px] font-mono-code">5x</button>
+          <button onclick="setSpeed(10, this)" class="speed-btn px-2 py-0.5 rounded text-on-surface-variant text-[11px] font-mono-code">MAX</button>
+        </div>
+      </div>
 
-  const START = { r: 1, c: 1 };
-  const GOAL = { r: GRID_SIZE - 2, c: GRID_SIZE - 2 };
+      <!-- Server API Request Trigger -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="requestServerFullSolve()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high hover:border-primary border border-outline-variant/40 text-primary font-mono-code text-xs font-semibold transition-all">
+          <span class="material-symbols-outlined text-[16px]">cloud_sync</span>
+          <span class="hidden sm:inline">서버 정밀 히스토그램 호출</span>
+        </button>
+      </div>
+    </div>
+  </header>
 
-  // Canvas references
-  const bfsCanvas = document.getElementById('bfsCanvas');
-  const bfsCtx = bfsCanvas.getContext('2d');
-  const dfsCanvas = document.getElementById('dfsCanvas');
-  const dfsCtx = dfsCanvas.getContext('2d');
+  <!-- Main Content Layout -->
+  <main class="pt-20 min-h-screen bg-surface w-full p-4 lg:p-6 flex flex-col gap-6">
 
-  function initMaze() {
-    // 0: wall, 1: path
-    maze = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+    <!-- Sub-Header: Complexity & Algorithm Highlights -->
+    <div class="w-full bg-surface-container-low rounded-xl p-4 shadow-md flex flex-wrap items-center justify-between gap-4 border border-surface-container">
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg">
+          <span class="w-2.5 h-2.5 rounded-full bg-primary-container shadow-[0_0_8px_rgba(56,189,248,0.8)]"></span>
+          <span class="font-mono-code text-xs text-primary font-semibold">BFS: Queue (FIFO)</span>
+          <span class="text-outline text-xs">|</span>
+          <span class="text-[11px] font-mono-code text-on-surface-variant">시간 복잡도 O(V+E) • 파면 전파 최단거리 100% 보장</span>
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg">
+          <span class="w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(69,223,164,0.8)]"></span>
+          <span class="font-mono-code text-xs text-secondary font-semibold">DFS: Stack (LIFO)</span>
+          <span class="text-outline text-xs">|</span>
+          <span class="text-[11px] font-mono-code text-on-surface-variant">시간 복잡도 O(V+E) • 공간 절약 O(h) • 비최적 경로 가능</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 font-mono-code text-xs text-outline">
+        <span>미로 규격: <strong class="text-on-surface">21×21 (441 Cells)</strong></span>
+        <span>시드: <strong class="text-primary font-mono-code" id="lbl-seed">0x9AF4</strong></span>
+      </div>
+    </div>
 
-    // Simple randomized DFS maze generator for valid corridors
-    function carve(r, c) {
-      maze[r][c] = 1;
-      const dirs = [
-        [0, 2], [2, 0], [0, -2], [-2, 0]
-      ].sort(() => Math.random() - 0.5);
+    <!-- Dual Algorithmic Viewports (50/50 Split) -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
 
-      for (let [dr, dc] of dirs) {
+      <!-- LEFT: BREADTH-FIRST SEARCH (BFS) -->
+      <div class="flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-lg border border-surface-container">
+        <!-- Panel Header -->
+        <div class="p-4 bg-surface-container-high flex flex-wrap items-center justify-between gap-2 border-b border-surface-container">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary-container shadow-[0_0_12px_rgba(56,189,248,0.3)]">
+              <span class="material-symbols-outlined text-[20px]">waves</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="font-display-lg text-base font-bold text-on-surface">너비 우선 탐색 (BFS)</h2>
+                <span class="px-2 py-0.5 rounded font-mono-code text-[11px] font-semibold bg-primary-container/20 text-primary-container">Queue (FIFO)</span>
+              </div>
+              <p class="text-xs text-outline font-body-md">Wavefront Propagation • 동심원 파면 균등 확장</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="px-2.5 py-1 rounded bg-surface-container-lowest text-right font-mono-code">
+              <div class="text-[10px] text-outline uppercase font-label-caps">Status</div>
+              <div class="text-xs text-primary-container font-semibold" id="bfs-status">탐색 준비 완료</div>
+            </div>
+            <div class="px-2.5 py-1 rounded bg-surface-container-lowest text-right font-mono-code">
+              <div class="text-[10px] text-outline uppercase font-label-caps">Peak Queue</div>
+              <div class="text-xs text-on-surface font-semibold" id="bfs-memory">0 Nodes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complexity Sub-bar -->
+        <div class="px-4 py-1.5 bg-surface-container flex items-center justify-between text-on-surface-variant font-mono-code text-[11px]">
+          <div class="flex items-center gap-3">
+            <span>시간 복잡도: <strong class="text-primary font-semibold">O(V + E)</strong></span>
+            <span class="text-outline-variant">|</span>
+            <span>공간 복잡도: <strong class="text-primary font-semibold">O(V)</strong></span>
+          </div>
+          <span class="text-primary-container font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">verified</span> 최단 거리 100% 보장
+          </span>
+        </div>
+
+        <!-- Canvas Viewport -->
+        <div class="p-4 flex flex-col items-center justify-center bg-surface-container-lowest">
+          <div class="relative w-full max-w-[460px] aspect-square p-2 bg-surface rounded-lg shadow-inner flex items-center justify-center border border-surface-container">
+            <canvas id="bfsCanvas" width="460" height="460" class="w-full h-full rounded shadow-md"></canvas>
+            <div class="absolute top-4 left-4 flex flex-col gap-1 pointer-events-none">
+              <span class="px-2 py-0.5 rounded bg-surface-container-high/90 text-primary-container font-mono-code text-[10px] shadow backdrop-blur border border-primary-container/30">
+                Frontier Depth: <span class="font-bold" id="bfs-depth">0</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Structure Inspector: Queue FIFO Drawer -->
+        <div class="p-4 bg-surface-container-low flex flex-col gap-2 border-t border-surface-container">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px] text-primary-container">table_rows</span>
+              <span class="font-label-caps text-xs uppercase text-on-surface tracking-wider font-semibold">Frontier Queue [FIFO 구조]</span>
+            </div>
+            <span class="font-mono-code text-xs text-outline">대기 원소: <span class="text-primary font-bold" id="bfs-queue-count">0</span>개</span>
+          </div>
+          <div class="relative w-full h-14 bg-surface-container-lowest rounded-lg p-2 flex items-center overflow-x-auto gap-2 shadow-inner border border-surface-container" id="bfs-queue-stream">
+            <div class="shrink-0 flex items-center gap-1 pr-2 text-primary font-mono-code text-[11px] font-semibold">
+              <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+              <span>DEQUEUE</span>
+            </div>
+            <div id="bfs-queue-items" class="flex items-center gap-1.5 text-on-surface font-mono-code text-xs">
+              <span class="px-2 py-1 rounded bg-surface-container-high text-outline text-xs">(1, 1)</span>
+            </div>
+            <div class="shrink-0 flex items-center gap-1 pl-2 text-outline font-mono-code text-[10px] ml-auto">
+              <span>ENQUEUE</span>
+              <span class="material-symbols-outlined text-[14px]">subdirectory_arrow_left</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: DEPTH-FIRST SEARCH (DFS) -->
+      <div class="flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-lg border border-surface-container">
+        <!-- Panel Header -->
+        <div class="p-4 bg-surface-container-high flex flex-wrap items-center justify-between gap-2 border-b border-surface-container">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center text-secondary shadow-[0_0_12px_rgba(69,223,164,0.3)]">
+              <span class="material-symbols-outlined text-[20px]">explore</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="font-display-lg text-base font-bold text-on-surface">깊이 우선 탐색 (DFS)</h2>
+                <span class="px-2 py-0.5 rounded font-mono-code text-[11px] font-semibold bg-secondary/20 text-secondary">Stack (LIFO) / 재귀</span>
+              </div>
+              <p class="text-xs text-outline font-body-md">Corridor Probing • 백트래킹 심층 탐험</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="px-2.5 py-1 rounded bg-surface-container-lowest text-right font-mono-code">
+              <div class="text-[10px] text-outline uppercase font-label-caps">Status</div>
+              <div class="text-xs text-secondary font-semibold" id="dfs-status">탐색 준비 완료</div>
+            </div>
+            <div class="px-2.5 py-1 rounded bg-surface-container-lowest text-right font-mono-code">
+              <div class="text-[10px] text-outline uppercase font-label-caps">Peak Stack</div>
+              <div class="text-xs text-on-surface font-semibold" id="dfs-memory">0 Nodes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complexity Sub-bar -->
+        <div class="px-4 py-1.5 bg-surface-container flex items-center justify-between text-on-surface-variant font-mono-code text-[11px]">
+          <div class="flex items-center gap-3">
+            <span>시간 복잡도: <strong class="text-secondary font-semibold">O(V + E)</strong></span>
+            <span class="text-outline-variant">|</span>
+            <span>공간 복잡도: <strong class="text-secondary font-semibold">O(h)</strong> (h = 분기 깊이)</span>
+          </div>
+          <span class="text-tertiary-fixed-dim font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">warning</span> 비최적 경로 가능성
+          </span>
+        </div>
+
+        <!-- Canvas Viewport -->
+        <div class="p-4 flex flex-col items-center justify-center bg-surface-container-lowest">
+          <div class="relative w-full max-w-[460px] aspect-square p-2 bg-surface rounded-lg shadow-inner flex items-center justify-center border border-surface-container">
+            <canvas id="dfsCanvas" width="460" height="460" class="w-full h-full rounded shadow-md"></canvas>
+            <div class="absolute top-4 left-4 flex flex-col gap-1 pointer-events-none">
+              <span class="px-2 py-0.5 rounded bg-surface-container-high/90 text-secondary font-mono-code text-[10px] shadow backdrop-blur border border-secondary/30">
+                Call Stack: <span class="font-bold" id="dfs-depth">0</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Structure Inspector: Call Stack Drawer -->
+        <div class="p-4 bg-surface-container-low flex flex-col gap-2 border-t border-surface-container">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px] text-secondary">layers</span>
+              <span class="font-label-caps text-xs uppercase text-on-surface tracking-wider font-semibold">Call Stack [LIFO 구조]</span>
+            </div>
+            <span class="font-mono-code text-xs text-outline">현재 스택 깊이: <span class="text-secondary font-bold" id="dfs-stack-count">0</span></span>
+          </div>
+          <div class="relative w-full h-14 bg-surface-container-lowest rounded-lg p-2 flex items-center overflow-x-auto gap-2 shadow-inner border border-surface-container" id="dfs-stack-stream">
+            <div class="shrink-0 flex items-center gap-1 pr-2 text-secondary font-mono-code text-[11px] font-bold">
+              <span class="material-symbols-outlined text-[14px]">vertical_align_top</span>
+              <span>TOP (POP/PUSH)</span>
+            </div>
+            <div id="dfs-stack-items" class="flex items-center gap-1.5 text-on-surface font-mono-code text-xs">
+              <span class="px-2 py-1 rounded bg-secondary/20 text-secondary font-semibold text-xs">(1, 1)</span>
+            </div>
+            <div class="shrink-0 flex items-center gap-1 pl-2 text-outline font-mono-code text-[10px] ml-auto">
+              <span>ROOT [0]</span>
+              <span class="material-symbols-outlined text-[14px]">south</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparative Metrics KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+      <!-- Visited Nodes Metric -->
+      <div class="bg-surface-container-low p-4 rounded-xl shadow-sm border border-surface-container flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-label-caps text-xs text-outline uppercase font-semibold">총 탐색 노드 수 (Visited)</span>
+          <span class="material-symbols-outlined text-[18px] text-primary">scatter_plot</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 my-1">
+          <div>
+            <span class="font-mono-code text-[11px] text-primary-container">BFS 너비탐색</span>
+            <div class="font-mono-metric text-xl font-bold text-on-surface" id="metric-bfs-visited">0</div>
+          </div>
+          <div>
+            <span class="font-mono-code text-[11px] text-secondary">DFS 깊이탐색</span>
+            <div class="font-mono-metric text-xl font-bold text-on-surface" id="metric-dfs-visited">0</div>
+          </div>
+        </div>
+        <div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden flex mt-2">
+          <div id="bar-bfs-visited" class="bg-primary-container h-full transition-all duration-200" style="width: 50%;"></div>
+          <div id="bar-dfs-visited" class="bg-secondary h-full transition-all duration-200" style="width: 50%;"></div>
+        </div>
+        <div class="flex justify-between items-center text-[10px] font-mono-code text-outline mt-1.5">
+          <span id="visited-diff-msg">동시 관측 대기 중</span>
+          <span>총 통로: <strong id="lbl-passable-cells">--</strong></span>
+        </div>
+      </div>
+
+      <!-- Path Length Metric -->
+      <div class="bg-surface-container-low p-4 rounded-xl shadow-sm border border-surface-container flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-label-caps text-xs text-outline uppercase font-semibold">최종 해 탐색 경로 (Steps)</span>
+          <span class="material-symbols-outlined text-[18px] text-tertiary">route</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 my-1">
+          <div>
+            <span class="font-mono-code text-[11px] text-primary-container">BFS 최단보장</span>
+            <div class="font-mono-metric text-xl font-bold text-primary" id="metric-bfs-path">--</div>
+          </div>
+          <div>
+            <span class="font-mono-code text-[11px] text-secondary">DFS 경로길이</span>
+            <div class="font-mono-metric text-xl font-bold text-secondary" id="metric-dfs-path">--</div>
+          </div>
+        </div>
+        <div class="p-1.5 rounded bg-surface-container-lowest mt-1 flex items-center justify-between text-xs font-mono-code">
+          <span class="text-outline">최적성 차이 (Delta):</span>
+          <span class="text-tertiary font-bold" id="metric-path-delta">대기 중</span>
+        </div>
+      </div>
+
+      <!-- Operations / Iterations Metric -->
+      <div class="bg-surface-container-low p-4 rounded-xl shadow-sm border border-surface-container flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-label-caps text-xs text-outline uppercase font-semibold">연산 루프 횟수 (Ops)</span>
+          <span class="material-symbols-outlined text-[18px] text-secondary">memory</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 my-1">
+          <div>
+            <span class="font-mono-code text-[11px] text-primary-container">BFS Enq/Deq</span>
+            <div class="font-mono-metric text-xl font-bold text-on-surface" id="metric-bfs-ops">0</div>
+          </div>
+          <div>
+            <span class="font-mono-code text-[11px] text-secondary">DFS Push/Pop</span>
+            <div class="font-mono-metric text-xl font-bold text-on-surface" id="metric-dfs-ops">0</div>
+          </div>
+        </div>
+        <div class="text-xs font-mono-code text-on-surface-variant flex items-center gap-1.5 mt-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          <span id="ops-speed-indicator">스레드 틱: 35ms/cycle</span>
+        </div>
+      </div>
+
+      <!-- Time Elapsed Metric -->
+      <div class="bg-surface-container-low p-4 rounded-xl shadow-sm border border-surface-container flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-label-caps text-xs text-outline uppercase font-semibold">소요 시간 (Elapsed Time)</span>
+          <span class="material-symbols-outlined text-[18px] text-primary-container">timer</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 my-1">
+          <div>
+            <span class="font-mono-code text-[11px] text-primary-container">BFS Time</span>
+            <div class="font-mono-metric text-xl font-bold text-on-surface" id="metric-bfs-time">0.00ms</div>
+          </div>
+          <div>
+            <span class="font-mono-code text-[11px] text-secondary">DFS Time</span>
+            <div class="font-mono-metric text-xl font-bold text-on-surface" id="metric-dfs-time">0.00ms</div>
+          </div>
+        </div>
+        <div class="text-xs font-mono-code text-outline flex items-center justify-between mt-1">
+          <span>진행 복잡도:</span>
+          <span class="text-secondary font-semibold" id="lbl-complexity-ratio">0.0% / O(V+E)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step-by-Step Histogram Chart & Bridge Telemetry Console -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+
+      <!-- Dynamic Frontier Growth Histogram (Queue vs Stack Step History) -->
+      <div class="lg:col-span-7 bg-surface-container-low rounded-xl p-4 shadow-md border border-surface-container flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-primary-container">bar_chart</span>
+              <h3 class="font-display-lg text-base font-semibold text-on-surface">단계별 히스토그램: Frontier Queue 크기 vs Call Stack 깊이 추이</h3>
+            </div>
+            <p class="text-xs text-outline">탐색 진행 단계(Step)별 자료구조 메모리 소비량 및 복잡도 곡선</p>
+          </div>
+          <div class="flex items-center gap-3 font-mono-code text-xs">
+            <span class="flex items-center gap-1 text-primary-container"><span class="w-3 h-1 bg-primary-container rounded"></span>BFS Queue (O(V))</span>
+            <span class="flex items-center gap-1 text-secondary"><span class="w-3 h-1 bg-secondary rounded"></span>DFS Stack (O(h))</span>
+          </div>
+        </div>
+
+        <!-- SVG Histogram Area -->
+        <div class="w-full h-44 bg-surface-container-lowest rounded-lg p-3 relative flex items-end border border-surface-container">
+          <svg id="histogramSvg" class="w-full h-full overflow-visible" viewBox="0 0 600 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="bfsGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0"/>
+              </linearGradient>
+              <linearGradient id="dfsGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#45dfa4" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#45dfa4" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <!-- Grid Lines -->
+            <line x1="0" y1="30" x2="600" y2="30" stroke="#222a3d" stroke-dasharray="3,3"/>
+            <line x1="0" y1="60" x2="600" y2="60" stroke="#222a3d" stroke-dasharray="3,3"/>
+            <line x1="0" y1="90" x2="600" y2="90" stroke="#222a3d" stroke-dasharray="3,3"/>
+            <!-- Dynamic Polylines & Area -->
+            <path id="svg-bfs-area" fill="url(#bfsGradient)" d="M0,120 L0,120 L600,120 Z"/>
+            <path id="svg-dfs-area" fill="url(#dfsGradient)" d="M0,120 L0,120 L600,120 Z"/>
+            <path id="svg-bfs-line" fill="none" stroke="#38bdf8" stroke-width="2" d="M0,120 L600,120"/>
+            <path id="svg-dfs-line" fill="none" stroke="#45dfa4" stroke-width="2" d="M0,120 L600,120"/>
+          </svg>
+          <div class="absolute top-2 left-3 font-mono-code text-[10px] text-outline" id="hist-peak-label">Max Peak: 0 Units</div>
+          <div class="absolute bottom-1 right-3 font-mono-code text-[10px] text-outline">Steps / Execution Ticks →</div>
+        </div>
+        <div class="flex items-center justify-between text-outline font-mono-code text-[11px] mt-2">
+          <span>• <strong>BFS (Queue)</strong>: 레벨 파면이 확장될수록 메모리 급증 (폭 $W$에 비례)</span>
+          <span>• <strong>DFS (Stack)</strong>: 단일 경로 깊이($h$)에만 비례하여 메모리 극소화</span>
+        </div>
+      </div>
+
+      <!-- REST & Script Bridge Console -->
+      <div class="lg:col-span-5 bg-surface-container-low rounded-xl p-4 shadow-md border border-surface-container flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">terminal</span>
+              <h3 class="font-display-lg text-base font-semibold text-on-surface">Bridge Telemetry</h3>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-surface-container text-secondary font-mono-code text-xs">JSON-RPC / REST</span>
+          </div>
+          <p class="text-xs text-outline mb-2">Apps Script (@code.gs) ↔ FastAPI (@main.py) 스트림 로그</p>
+        </div>
+
+        <!-- Terminal Output Window -->
+        <div id="telemetry-logs" class="w-full bg-surface-container-lowest rounded-lg p-3 font-mono-code text-[11px] text-on-surface-variant flex flex-col gap-1.5 overflow-y-auto h-44 shadow-inner border border-surface-container">
+          <div class="flex items-center gap-2 text-outline">
+            <span class="text-secondary">[0.000s]</span>
+            <span>SYSTEM INIT: BFS vs DFS Dual Simulation Engine Ready.</span>
+          </div>
+          <div class="flex items-center gap-2 text-primary-container">
+            <span class="text-secondary">[0.005s]</span>
+            <span>BFS Queue (FIFO) &amp; DFS Call Stack (LIFO) initialized.</span>
+          </div>
+          <div class="flex items-center gap-2 text-outline mt-auto pt-1">
+            <span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+            <span class="text-on-surface">Ready for execution or Cloud Run API trigger...</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-outline font-mono-code text-[10px] mt-2">
+          <span>알고리즘: BFS &amp; DFS</span>
+          <span>엔진: JavaScript V8 / Python 3.11</span>
+          <span>최적성: <strong class="text-secondary font-semibold">BFS Guaranteed</strong></span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    const GRID_SIZE = 21;
+    let maze = [];
+    let isRunning = false;
+    let timerId = null;
+    let tickDelay = 35;
+    let totalPassableCells = 0;
+
+    // BFS State
+    let bfsQueue = [];
+    let bfsVisited = [];
+    let bfsParent = {};
+    let bfsDone = false;
+    let bfsOptimalPath = [];
+    let bfsOps = 0;
+    let bfsStartTime = 0;
+    let bfsElapsed = 0;
+    let bfsPeakMemory = 1;
+
+    // DFS State
+    let dfsStack = [];
+    let dfsVisited = [];
+    let dfsParent = {};
+    let dfsDeadEnds = [];
+    let dfsCurrentPath = [];
+    let dfsDone = false;
+    let dfsOps = 0;
+    let dfsStartTime = 0;
+    let dfsElapsed = 0;
+    let dfsPeakMemory = 1;
+
+    // Histograms (Queue size vs Stack depth)
+    let historyBfs = [1];
+    let historyDfs = [1];
+
+    const START = { r: 1, c: 1 };
+    const GOAL = { r: GRID_SIZE - 2, c: GRID_SIZE - 2 };
+
+    const bfsCanvas = document.getElementById('bfsCanvas');
+    const bfsCtx = bfsCanvas.getContext('2d');
+    const dfsCanvas = document.getElementById('dfsCanvas');
+    const dfsCtx = dfsCanvas.getContext('2d');
+
+    // 미로 초기화 (Recursive Backtracker)
+    function initMaze() {
+      maze = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+
+      function carve(r, c) {
+        maze[r][c] = 1;
+        const dirs = [
+          [0, 2], [2, 0], [0, -2], [-2, 0]
+        ].sort(() => Math.random() - 0.5);
+
+        for (let [dr, dc] of dirs) {
+          const nr = r + dr;
+          const nc = c + dc;
+          if (nr > 0 && nr < GRID_SIZE - 1 && nc > 0 && nc < GRID_SIZE - 1 && maze[nr][nc] === 0) {
+            maze[r + dr / 2][c + dc / 2] = 1;
+            carve(nr, nc);
+          }
+        }
+      }
+
+      carve(1, 1);
+      maze[START.r][START.c] = 1;
+      maze[GOAL.r][GOAL.c] = 1;
+      maze[GOAL.r][GOAL.c - 1] = 1;
+
+      totalPassableCells = 0;
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (maze[r][c] === 1) totalPassableCells++;
+        }
+      }
+      document.getElementById('lbl-passable-cells').textContent = `${totalPassableCells} Cells`;
+      document.getElementById('lbl-seed').textContent = '0x' + Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase();
+    }
+
+    function resetSimulation() {
+      pauseExecution();
+
+      bfsQueue = [{ r: START.r, c: START.c, depth: 0 }];
+      bfsVisited = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(false));
+      bfsVisited[START.r][START.c] = true;
+      bfsParent = {};
+      bfsDone = false;
+      bfsOptimalPath = [];
+      bfsOps = 0;
+      bfsElapsed = 0;
+      bfsPeakMemory = 1;
+
+      dfsStack = [{ r: START.r, c: START.c, path: [`${START.r},${START.c}`] }];
+      dfsVisited = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(false));
+      dfsVisited[START.r][START.c] = true;
+      dfsParent = {};
+      dfsDeadEnds = [];
+      dfsCurrentPath = [`${START.r},${START.c}`];
+      dfsDone = false;
+      dfsOps = 0;
+      dfsElapsed = 0;
+      dfsPeakMemory = 1;
+
+      historyBfs = [1];
+      historyDfs = [1];
+
+      document.getElementById('bfs-status').textContent = '대기 중';
+      document.getElementById('dfs-status').textContent = '대기 중';
+      document.getElementById('bfs-status').className = 'text-xs text-primary-container font-semibold';
+      document.getElementById('dfs-status').className = 'text-xs text-secondary font-semibold';
+      document.getElementById('metric-bfs-path').textContent = '--';
+      document.getElementById('metric-dfs-path').textContent = '--';
+      document.getElementById('metric-path-delta').textContent = '대기 중';
+
+      renderCanvases();
+      updateInspectors();
+      updateMetricsUI();
+      renderHistogram();
+    }
+
+    function generateNewMaze() {
+      initMaze();
+      resetSimulation();
+      appendLog(`새 21x21 미로 생성 완료 (출발: [1, 1], 목표: [${GOAL.r}, ${GOAL.c}])`);
+    }
+
+    function toggleExecution() {
+      if (isRunning) {
+        pauseExecution();
+      } else {
+        if (bfsDone && dfsDone) {
+          resetSimulation();
+        }
+        isRunning = true;
+        bfsStartTime = performance.now() - bfsElapsed;
+        dfsStartTime = performance.now() - dfsElapsed;
+        document.getElementById('btn-run-icon').textContent = 'pause';
+        document.getElementById('btn-run-label').textContent = '일시 정지';
+        document.getElementById('bfs-status').textContent = '탐색 실행 중...';
+        document.getElementById('dfs-status').textContent = '탐색 실행 중...';
+        appendLog('너비 우선(BFS) & 깊이 우선(DFS) 병렬 탐색 시작');
+        timerId = setInterval(simulationStep, tickDelay);
+      }
+    }
+
+    function pauseExecution() {
+      isRunning = false;
+      if (timerId) clearInterval(timerId);
+      document.getElementById('btn-run-icon').textContent = 'play_arrow';
+      document.getElementById('btn-run-label').textContent = '탐색 재개';
+    }
+
+    function setSpeed(multiplier, btn) {
+      document.querySelectorAll('.speed-btn').forEach(b => {
+        b.classList.remove('bg-surface-container-high', 'text-primary', 'font-bold');
+        b.classList.add('text-on-surface-variant');
+      });
+      btn.classList.add('bg-surface-container-high', 'text-primary', 'font-bold');
+      btn.classList.remove('text-on-surface-variant');
+
+      if (multiplier === 1) tickDelay = 70;
+      else if (multiplier === 2) tickDelay = 35;
+      else if (multiplier === 5) tickDelay = 14;
+      else if (multiplier === 10) tickDelay = 2;
+
+      document.getElementById('ops-speed-indicator').textContent = `스레드 틱: ${tickDelay}ms/cycle`;
+
+      if (isRunning) {
+        clearInterval(timerId);
+        timerId = setInterval(simulationStep, tickDelay);
+      }
+    }
+
+    function getNeighbors(r, c) {
+      const deltas = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // East, South, West, North
+      const res = [];
+      for (let [dr, dc] of deltas) {
         const nr = r + dr;
         const nc = c + dc;
-        if (nr > 0 && nr < GRID_SIZE - 1 && nc > 0 && nc < GRID_SIZE - 1 && maze[nr][nc] === 0) {
-          maze[r + dr / 2][c + dc / 2] = 1;
-          carve(nr, nc);
+        if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && maze[nr][nc] === 1) {
+          res.push({ r: nr, c: nc });
+        }
+      }
+      return res;
+    }
+
+    // 단일 시뮬레이션 스텝
+    function simulationStep() {
+      let active = false;
+
+      // 1. Step BFS
+      if (!bfsDone) {
+        active = true;
+        bfsElapsed = performance.now() - bfsStartTime;
+        if (bfsQueue.length > 0) {
+          const cur = bfsQueue.shift();
+          bfsOps++;
+
+          if (cur.r === GOAL.r && cur.c === GOAL.c) {
+            bfsDone = true;
+            reconstructBfsPath(cur);
+            document.getElementById('bfs-status').textContent = '목표 도달 (최단 경로 확정)';
+            document.getElementById('bfs-status').className = 'text-xs text-secondary font-semibold';
+            appendLog(`BFS 탐색 완료: 최단거리 ${bfsOptimalPath.length} 스텝 도달`);
+          } else {
+            const neighbors = getNeighbors(cur.r, cur.c);
+            for (let n of neighbors) {
+              const key = `${n.r},${n.c}`;
+              if (!bfsVisited[n.r][n.c]) {
+                bfsVisited[n.r][n.c] = true;
+                bfsParent[key] = { r: cur.r, c: cur.c };
+                bfsQueue.push({ r: n.r, c: n.c, depth: cur.depth + 1 });
+                document.getElementById('bfs-depth').textContent = cur.depth + 1;
+                if (bfsQueue.length > bfsPeakMemory) bfsPeakMemory = bfsQueue.length;
+              }
+            }
+          }
+        } else {
+          bfsDone = true;
+          document.getElementById('bfs-status').textContent = '탐색 실패 (경로 없음)';
+        }
+      }
+
+      // 2. Step DFS
+      if (!dfsDone) {
+        active = true;
+        dfsElapsed = performance.now() - dfsStartTime;
+        if (dfsStack.length > 0) {
+          const cur = dfsStack[dfsStack.length - 1]; // Top
+          dfsOps++;
+          dfsCurrentPath = cur.path;
+
+          if (cur.r === GOAL.r && cur.c === GOAL.c) {
+            dfsDone = true;
+            document.getElementById('dfs-status').textContent = '목표 도달 (경로 확인)';
+            document.getElementById('dfs-status').className = 'text-xs text-secondary font-semibold';
+            appendLog(`DFS 탐색 완료: 경로 길이 ${cur.path.length} 스텝 기록`);
+          } else {
+            const neighbors = getNeighbors(cur.r, cur.c);
+            let foundNext = false;
+
+            for (let n of neighbors) {
+              if (!dfsVisited[n.r][n.c]) {
+                dfsVisited[n.r][n.c] = true;
+                dfsParent[`${n.r},${n.c}`] = { r: cur.r, c: cur.c };
+                dfsStack.push({
+                  r: n.r,
+                  c: n.c,
+                  path: [...cur.path, `${n.r},${n.c}`]
+                });
+                if (dfsStack.length > dfsPeakMemory) dfsPeakMemory = dfsStack.length;
+                foundNext = true;
+                break;
+              }
+            }
+
+            if (!foundNext) {
+              const popped = dfsStack.pop();
+              dfsDeadEnds.push(`${popped.r},${popped.c}`);
+            }
+          }
+        } else {
+          dfsDone = true;
+          document.getElementById('dfs-status').textContent = '백트래킹 소진 (경로 없음)';
+        }
+      }
+
+      // 히스토그램 스냅샷 기록
+      historyBfs.push(bfsQueue.length);
+      historyDfs.push(dfsStack.length);
+      if (historyBfs.length > 60) {
+        historyBfs.shift();
+        historyDfs.shift();
+      }
+
+      renderCanvases();
+      updateInspectors();
+      updateMetricsUI();
+      renderHistogram();
+
+      if (!active || (bfsDone && dfsDone)) {
+        pauseExecution();
+        document.getElementById('btn-run-label').textContent = '탐색 완료';
+        appendLog('BFS vs DFS 탐색 완료: 메트릭 비교 요약 확정');
+      }
+    }
+
+    function reconstructBfsPath(goalNode) {
+      let currKey = `${goalNode.r},${goalNode.c}`;
+      bfsOptimalPath = [currKey];
+      while (bfsParent[currKey]) {
+        const p = bfsParent[currKey];
+        currKey = `${p.r},${p.c}`;
+        bfsOptimalPath.unshift(currKey);
+      }
+    }
+
+    // Canvas 렌더링
+    function renderCanvases() {
+      renderCanvasGrid(bfsCtx, 'BFS');
+      renderCanvasGrid(dfsCtx, 'DFS');
+    }
+
+    function renderCanvasGrid(ctx, mode) {
+      const w = ctx.canvas.width;
+      const h = ctx.canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const cellSize = w / GRID_SIZE;
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const x = c * cellSize;
+          const y = r * cellSize;
+
+          if (maze[r][c] === 0) {
+            ctx.fillStyle = '#060e20'; // Wall
+            ctx.fillRect(x, y, cellSize, cellSize);
+          } else {
+            ctx.fillStyle = '#131b2e'; // Corridor
+            ctx.fillRect(x, y, cellSize, cellSize);
+          }
+
+          // Shading
+          if (mode === 'BFS' && bfsVisited[r][c]) {
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+            ctx.fillRect(x, y, cellSize, cellSize);
+          } else if (mode === 'DFS' && dfsVisited[r][c]) {
+            if (dfsDeadEnds.includes(`${r},${c}`)) {
+              ctx.fillStyle = 'rgba(45, 52, 73, 0.5)';
+            } else {
+              ctx.fillStyle = 'rgba(69, 223, 164, 0.18)';
+            }
+            ctx.fillRect(x, y, cellSize, cellSize);
+          }
+        }
+      }
+
+      if (mode === 'BFS') {
+        if (bfsOptimalPath.length > 0) {
+          ctx.fillStyle = '#ffc174';
+          ctx.shadowColor = '#ffc174';
+          ctx.shadowBlur = 8;
+          for (let coord of bfsOptimalPath) {
+            const [r, c] = coord.split(',').map(Number);
+            ctx.fillRect(c * cellSize + 2, r * cellSize + 2, cellSize - 4, cellSize - 4);
+          }
+          ctx.shadowBlur = 0;
+        }
+
+        // Frontier Queue nodes
+        ctx.fillStyle = '#38bdf8';
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 6;
+        for (let q of bfsQueue) {
+          ctx.fillRect(q.c * cellSize + 3, q.r * cellSize + 3, cellSize - 6, cellSize - 6);
+        }
+        ctx.shadowBlur = 0;
+      } else {
+        // DFS current path
+        if (dfsCurrentPath.length > 0) {
+          ctx.fillStyle = 'rgba(69, 223, 164, 0.6)';
+          for (let coord of dfsCurrentPath) {
+            const [r, c] = coord.split(',').map(Number);
+            ctx.fillRect(c * cellSize + 3, r * cellSize + 3, cellSize - 6, cellSize - 6);
+          }
+        }
+
+        // Stack Top
+        if (dfsStack.length > 0) {
+          const top = dfsStack[dfsStack.length - 1];
+          ctx.fillStyle = '#68fcbf';
+          ctx.shadowColor = '#68fcbf';
+          ctx.shadowBlur = 10;
+          ctx.fillRect(top.c * cellSize + 2, top.r * cellSize + 2, cellSize - 4, cellSize - 4);
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      // Start S
+      const sx = START.c * cellSize;
+      const sy = START.r * cellSize;
+      ctx.fillStyle = '#45dfa4';
+      ctx.fillRect(sx + 2, sy + 2, cellSize - 4, cellSize - 4);
+      ctx.fillStyle = '#003825';
+      ctx.font = 'bold 12px Space Grotesk';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('S', sx + cellSize / 2, sy + cellSize / 2);
+
+      // Goal G
+      const gx = GOAL.c * cellSize;
+      const gy = GOAL.r * cellSize;
+      ctx.fillStyle = '#ffb4ab';
+      ctx.fillRect(gx + 2, gy + 2, cellSize - 4, cellSize - 4);
+      ctx.fillStyle = '#690005';
+      ctx.font = 'bold 12px Space Grotesk';
+      ctx.fillText('G', gx + cellSize / 2, gy + cellSize / 2);
+    }
+
+    // Queue & Stack 인스펙터 갱신
+    function updateInspectors() {
+      // BFS Queue
+      document.getElementById('bfs-queue-count').textContent = bfsQueue.length;
+      document.getElementById('bfs-memory').textContent = `${bfsPeakMemory} Nodes`;
+      const qContainer = document.getElementById('bfs-queue-items');
+      qContainer.innerHTML = '';
+      const qSlice = bfsQueue.slice(0, 6);
+      if (qSlice.length === 0) {
+        qContainer.innerHTML = '<span class="text-outline text-xs italic">Queue Empty</span>';
+      } else {
+        qSlice.forEach((node, idx) => {
+          const span = document.createElement('span');
+          span.className = idx === 0
+            ? 'px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-bold text-xs shadow-sm animate-pulse'
+            : 'px-2 py-0.5 rounded bg-surface-container-high text-primary text-xs';
+          span.textContent = `(${node.r},${node.c})`;
+          qContainer.appendChild(span);
+        });
+        if (bfsQueue.length > 6) {
+          const more = document.createElement('span');
+          more.className = 'text-outline text-[10px]';
+          more.textContent = `+${bfsQueue.length - 6} more`;
+          qContainer.appendChild(more);
+        }
+      }
+
+      // DFS Stack
+      document.getElementById('dfs-stack-count').textContent = dfsStack.length;
+      document.getElementById('dfs-depth').textContent = dfsStack.length;
+      document.getElementById('dfs-memory').textContent = `${dfsPeakMemory} Nodes`;
+      const sContainer = document.getElementById('dfs-stack-items');
+      sContainer.innerHTML = '';
+      const sSlice = dfsStack.slice(-6).reverse();
+      if (sSlice.length === 0) {
+        sContainer.innerHTML = '<span class="text-outline text-xs italic">Stack Empty</span>';
+      } else {
+        sSlice.forEach((node, idx) => {
+          const span = document.createElement('span');
+          span.className = idx === 0
+            ? 'px-2 py-0.5 rounded bg-secondary text-on-secondary font-bold text-xs shadow-sm'
+            : 'px-2 py-0.5 rounded bg-surface-container-high text-secondary text-xs';
+          span.textContent = `(${node.r},${node.c})`;
+          sContainer.appendChild(span);
+        });
+        if (dfsStack.length > 6) {
+          const more = document.createElement('span');
+          more.className = 'text-outline text-[10px]';
+          more.textContent = `...${dfsStack.length - 6} deep`;
+          sContainer.appendChild(more);
         }
       }
     }
 
-    carve(1, 1);
-    maze[START.r][START.c] = 1;
-    maze[GOAL.r][GOAL.c] = 1;
-    // ensure reachability
-    maze[GOAL.r][GOAL.c - 1] = 1;
-  }
+    // KPI 메트릭 갱신
+    function updateMetricsUI() {
+      let bfsVisCount = 0;
+      let dfsVisCount = 0;
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (bfsVisited[r][c]) bfsVisCount++;
+          if (dfsVisited[r][c]) dfsVisCount++;
+        }
+      }
 
-  function resetSimulation() {
-    pauseExecution();
+      document.getElementById('metric-bfs-visited').textContent = bfsVisCount;
+      document.getElementById('metric-dfs-visited').textContent = dfsVisCount;
 
-    bfsQueue = [{ r: START.r, c: START.c, depth: 0 }];
-    bfsVisited = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(false));
-    bfsVisited[START.r][START.c] = true;
-    bfsParent = {};
-    bfsDone = false;
-    bfsOptimalPath = [];
-    bfsOps = 0;
-    bfsElapsed = 0;
+      const total = (bfsVisCount + dfsVisCount) || 1;
+      const bfsPct = Math.round((bfsVisCount / total) * 100);
+      document.getElementById('bar-bfs-visited').style.width = bfsPct + '%';
+      document.getElementById('bar-dfs-visited').style.width = (100 - bfsPct) + '%';
 
-    dfsStack = [{ r: START.r, c: START.c, path: [`${START.r},${START.c}`] }];
-    dfsVisited = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(false));
-    dfsVisited[START.r][START.c] = true;
-    dfsParent = {};
-    dfsDeadEnds = [];
-    dfsCurrentPath = [`${START.r},${START.c}`];
-    dfsDone = false;
-    dfsOps = 0;
-    dfsElapsed = 0;
+      if (bfsVisCount > dfsVisCount) {
+        document.getElementById('visited-diff-msg').textContent = `DFS가 ${bfsVisCount - dfsVisCount}개 노드 적게 탐색`;
+      } else if (dfsVisCount > bfsVisCount) {
+        document.getElementById('visited-diff-msg').textContent = `BFS가 ${dfsVisCount - bfsVisCount}개 노드 적게 탐색`;
+      }
 
-    historyBfs = [1];
-    historyDfs = [1];
+      document.getElementById('metric-bfs-ops').textContent = bfsOps;
+      document.getElementById('metric-dfs-ops').textContent = dfsOps;
+      document.getElementById('metric-bfs-time').textContent = bfsElapsed.toFixed(2) + 'ms';
+      document.getElementById('metric-dfs-time').textContent = dfsElapsed.toFixed(2) + 'ms';
 
-    updateStatusIndicators('대기 중', '대기 중');
-    renderCanvases();
-    updateInspectors();
-    updateMetricsUI();
-    renderHistogram();
-  }
+      // 복잡도 진행 비율
+      const maxVisited = Math.max(bfsVisCount, dfsVisCount);
+      const ratio = totalPassableCells > 0 ? ((maxVisited / totalPassableCells) * 100).toFixed(1) : 0;
+      document.getElementById('lbl-complexity-ratio').textContent = `${ratio}% (V:${maxVisited}/${totalPassableCells})`;
 
-  function generateNewMaze() {
+      if (bfsOptimalPath.length > 0) {
+        document.getElementById('metric-bfs-path').textContent = bfsOptimalPath.length;
+      }
+      if (dfsDone && dfsCurrentPath.length > 0) {
+        document.getElementById('metric-dfs-path').textContent = dfsCurrentPath.length;
+      }
+      if (bfsOptimalPath.length > 0 && dfsDone) {
+        const delta = dfsCurrentPath.length - bfsOptimalPath.length;
+        if (delta === 0) {
+          document.getElementById('metric-path-delta').textContent = '동일 최단 경로';
+          document.getElementById('metric-path-delta').className = 'text-secondary font-bold';
+        } else {
+          document.getElementById('metric-path-delta').textContent = `+${delta} steps (DFS 비최적)`;
+          document.getElementById('metric-path-delta').className = 'text-tertiary font-bold';
+        }
+      }
+    }
+
+    // 실시간 단계별 히스토그램 SVG 렌더링
+    function renderHistogram() {
+      const maxVal = Math.max(10, ...historyBfs, ...historyDfs);
+      document.getElementById('hist-peak-label').textContent = `Max Capacity Peak: ${maxVal} Units`;
+
+      const w = 600;
+      const h = 120;
+      const len = historyBfs.length;
+      if (len < 2) return;
+
+      let bfsPts = [];
+      let dfsPts = [];
+
+      for (let i = 0; i < len; i++) {
+        const x = (i / (len - 1)) * w;
+        const yBfs = h - (historyBfs[i] / maxVal) * (h - 20);
+        const yDfs = h - (historyDfs[i] / maxVal) * (h - 20);
+        bfsPts.push({ x, y: yBfs });
+        dfsPts.push({ x, y: yDfs });
+      }
+
+      const bfsLineD = bfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+      const dfsLineD = dfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+
+      const bfsAreaD = `${bfsLineD} L${w},${h} L0,${h} Z`;
+      const dfsAreaD = `${dfsLineD} L${w},${h} L0,${h} Z`;
+
+      document.getElementById('svg-bfs-line').setAttribute('d', bfsLineD);
+      document.getElementById('svg-dfs-line').setAttribute('d', dfsLineD);
+      document.getElementById('svg-bfs-area').setAttribute('d', bfsAreaD);
+      document.getElementById('svg-dfs-area').setAttribute('d', dfsAreaD);
+    }
+
+    function appendLog(text) {
+      const logs = document.getElementById('telemetry-logs');
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2 text-on-surface-variant';
+      const time = ((performance.now() - bfsStartTime) / 1000).toFixed(3);
+      div.innerHTML = `<span class="text-secondary">[${Math.max(0, time)}s]</span><span>${text}</span>`;
+      logs.appendChild(div);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    // Google Apps Script 백엔드 (code.gs) 경유 Cloud Run API 연동
+    function requestServerFullSolve() {
+      appendLog('Cloud Run API로 미로 단계별 히스토그램 및 복잡도 메타데이터 요청 중...');
+      document.getElementById('conn-status-text').textContent = 'Requesting Cloud Run...';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            handleServerSolveResponse(res);
+          })
+          .withFailureHandler(function(err) {
+            appendLog(`서버 요청 오류: ${err}. 로컬 시뮬레이션으로 계속 진행합니다.`);
+            document.getElementById('conn-status-text').textContent = 'Local Fallback';
+          })
+          .solveMazeApi(maze, START, GOAL, 1000);
+      } else {
+        appendLog('로컬 브라우저 모드: 자체 엔진으로 단계별 히스토그램 스냅샷 생성 및 시뮬레이션을 시작합니다.');
+        toggleExecution();
+      }
+    }
+
+    function handleServerSolveResponse(res) {
+      if (!res || res.status !== 'success') {
+        appendLog(`서버 응답 오류: ${res ? res.message : '알 수 없는 오류'}`);
+        return;
+      }
+      appendLog(`서버 연동 성공: BFS Peak Queue=${res.bfs.peak_queue_size}, DFS Peak Stack=${res.dfs.peak_stack_size}`);
+      document.getElementById('conn-status-text').textContent = 'Cloud Run Connected';
+
+      if (res.bfs && res.bfs.histogram_data && res.dfs && res.dfs.histogram_data) {
+        historyBfs = res.bfs.histogram_data.map(d => d.queue_size);
+        historyDfs = res.dfs.histogram_data.map(d => d.stack_size);
+        renderHistogram();
+      }
+      appendLog(`서버 복잡도 메타데이터 동기화 완료: ${res.comparison.path_comparison}`);
+      toggleExecution();
+    }
+
+    // 초기 실행
     initMaze();
     resetSimulation();
-    appendLog(`새 21x21 미로 행렬 재계산 완료 (Goal: [${GOAL.r}, ${GOAL.c}])`);
-  }
-
-  function toggleExecution() {
-    if (isRunning) {
-      pauseExecution();
-    } else {
-      if (bfsDone && dfsDone) {
-        resetSimulation();
-      }
-      isRunning = true;
-      bfsStartTime = performance.now() - bfsElapsed;
-      dfsStartTime = performance.now() - dfsElapsed;
-      document.getElementById('btn-run-icon').textContent = 'pause';
-      document.getElementById('btn-run-label').textContent = '일시 정지';
-      updateStatusIndicators('탐색 실행 중...', '탐색 실행 중...');
-      appendLog('병렬 탐색 시작: BFS & DFS 스레드 활성화');
-      timerId = setInterval(simulationStep, tickDelay);
-    }
-  }
-
-  function pauseExecution() {
-    isRunning = false;
-    if (timerId) clearInterval(timerId);
-    document.getElementById('btn-run-icon').textContent = 'play_arrow';
-    document.getElementById('btn-run-label').textContent = '탐색 재개';
-  }
-
-  function setSpeed(multiplier, btn) {
-    document.querySelectorAll('.speed-btn').forEach(b => {
-      b.classList.remove('bg-surface-container-high', 'text-primary', 'font-bold');
-      b.classList.add('text-on-surface-variant');
-    });
-    btn.classList.add('bg-surface-container-high', 'text-primary', 'font-bold');
-    btn.classList.remove('text-on-surface-variant');
-
-    if (multiplier === 1) tickDelay = 70;
-    else if (multiplier === 2) tickDelay = 35;
-    else if (multiplier === 5) tickDelay = 14;
-    else if (multiplier === 10) tickDelay = 2;
-
-    document.getElementById('ops-speed-indicator').textContent = `스레드 틱: ${tickDelay}ms/cycle`;
-
-    if (isRunning) {
-      clearInterval(timerId);
-      timerId = setInterval(simulationStep, tickDelay);
-    }
-  }
-
-  function getNeighbors(r, c) {
-    const deltas = [
-      [0, 1], [1, 0], [0, -1], [-1, 0] // East, South, West, North
-    ];
-    const res = [];
-    for (let [dr, dc] of deltas) {
-      const nr = r + dr;
-      const nc = c + dc;
-      if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && maze[nr][nc] === 1) {
-        res.push({ r: nr, c: nc });
-      }
-    }
-    return res;
-  }
-
-  function simulationStep() {
-    let active = false;
-
-    // Step BFS
-    if (!bfsDone) {
-      active = true;
-      bfsElapsed = performance.now() - bfsStartTime;
-      if (bfsQueue.length > 0) {
-        const cur = bfsQueue.shift();
-        bfsOps++;
-
-        if (cur.r === GOAL.r && cur.c === GOAL.c) {
-          bfsDone = true;
-          reconstructBfsPath(cur);
-          document.getElementById('bfs-status').textContent = '목표 도달 (최단 경로)';
-          document.getElementById('bfs-status').className = 'text-[12px] text-secondary font-semibold';
-          appendLog(`BFS 탐색 종료: 최단거리 ${bfsOptimalPath.length} 스텝 도달`);
-        } else {
-          const neighbors = getNeighbors(cur.r, cur.c);
-          for (let n of neighbors) {
-            const key = `${n.r},${n.c}`;
-            if (!bfsVisited[n.r][n.c]) {
-              bfsVisited[n.r][n.c] = true;
-              bfsParent[key] = { r: cur.r, c: cur.c };
-              bfsQueue.push({ r: n.r, c: n.c, depth: cur.depth + 1 });
-              document.getElementById('bfs-depth').textContent = cur.depth + 1;
-            }
-          }
-        }
-      } else {
-        bfsDone = true;
-        document.getElementById('bfs-status').textContent = '경로 없음 (탐색 실패)';
-      }
-    }
-
-    // Step DFS
-    if (!dfsDone) {
-      active = true;
-      dfsElapsed = performance.now() - dfsStartTime;
-      if (dfsStack.length > 0) {
-        const cur = dfsStack[dfsStack.length - 1]; // Top of stack
-        dfsOps++;
-        dfsCurrentPath = cur.path;
-
-        if (cur.r === GOAL.r && cur.c === GOAL.c) {
-          dfsDone = true;
-          document.getElementById('dfs-status').textContent = '목표 도달 (경로 확인)';
-          document.getElementById('dfs-status').className = 'text-[12px] text-secondary font-semibold';
-          appendLog(`DFS 탐색 종료: 도달 성공 (${cur.path.length} 스텝 기록)`);
-        } else {
-          // Find unvisited neighbor
-          const neighbors = getNeighbors(cur.r, cur.c);
-          let foundNext = false;
-
-          for (let n of neighbors) {
-            if (!dfsVisited[n.r][n.c]) {
-              dfsVisited[n.r][n.c] = true;
-              dfsParent[`${n.r},${n.c}`] = { r: cur.r, c: cur.c };
-              dfsStack.push({
-                r: n.r,
-                c: n.c,
-                path: [...cur.path, `${n.r},${n.c}`]
-              });
-              foundNext = true;
-              break;
-            }
-          }
-
-          if (!foundNext) {
-            // Dead end - Backtrack
-            const popped = dfsStack.pop();
-            dfsDeadEnds.push(`${popped.r},${popped.c}`);
-          }
-        }
-      } else {
-        dfsDone = true;
-        document.getElementById('dfs-status').textContent = '경로 없음 (백트래킹 소진)';
-      }
-    }
-
-    historyBfs.push(bfsQueue.length);
-    historyDfs.push(dfsStack.length);
-    if (historyBfs.length > 50) {
-      historyBfs.shift();
-      historyDfs.shift();
-    }
-
-    renderCanvases();
-    updateInspectors();
-    updateMetricsUI();
-    renderHistogram();
-
-    if (!active || (bfsDone && dfsDone)) {
-      pauseExecution();
-      document.getElementById('btn-run-label').textContent = '탐색 완료';
-    }
-  }
-
-  function reconstructBfsPath(goalNode) {
-    let currKey = `${goalNode.r},${goalNode.c}`;
-    bfsOptimalPath = [currKey];
-    while (bfsParent[currKey]) {
-      const p = bfsParent[currKey];
-      currKey = `${p.r},${p.c}`;
-      bfsOptimalPath.unshift(currKey);
-    }
-  }
-
-  function updateStatusIndicators(bfsTxt, dfsTxt) {
-    if (!bfsDone) document.getElementById('bfs-status').textContent = bfsTxt;
-    if (!dfsDone) document.getElementById('dfs-status').textContent = dfsTxt;
-  }
-
-  function renderCanvases() {
-    renderCanvasGrid(bfsCtx, 'BFS');
-    renderCanvasGrid(dfsCtx, 'DFS');
-  }
-
-  function renderCanvasGrid(ctx, mode) {
-    const w = ctx.canvas.width;
-    const h = ctx.canvas.height;
-    ctx.clearRect(0, 0, w, h);
-
-    const cellSize = w / GRID_SIZE;
-
-    // Draw base walls & paths
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
-        const x = c * cellSize;
-        const y = r * cellSize;
-
-        if (maze[r][c] === 0) {
-          ctx.fillStyle = '#060e20'; // Wall
-          ctx.fillRect(x, y, cellSize, cellSize);
-        } else {
-          ctx.fillStyle = '#131b2e'; // Corridor
-          ctx.fillRect(x, y, cellSize, cellSize);
-        }
-
-        // Visited shading
-        if (mode === 'BFS' && bfsVisited[r][c]) {
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
-          ctx.fillRect(x, y, cellSize, cellSize);
-        } else if (mode === 'DFS' && dfsVisited[r][c]) {
-          if (dfsDeadEnds.includes(`${r},${c}`)) {
-            ctx.fillStyle = 'rgba(45, 52, 73, 0.5)'; // Muted dead end
-          } else {
-            ctx.fillStyle = 'rgba(69, 223, 164, 0.16)';
-          }
-          ctx.fillRect(x, y, cellSize, cellSize);
-        }
-      }
-    }
-
-    // Highlighting paths
-    if (mode === 'BFS') {
-      // Draw BFS optimal path if finished
-      if (bfsOptimalPath.length > 0) {
-        ctx.fillStyle = '#ffc174'; // Neon gold highlight
-        ctx.shadowColor = '#ffc174';
-        ctx.shadowBlur = 8;
-        for (let coord of bfsOptimalPath) {
-          const [r, c] = coord.split(',').map(Number);
-          ctx.fillRect(c * cellSize + 2, r * cellSize + 2, cellSize - 4, cellSize - 4);
-        }
-        ctx.shadowBlur = 0;
-      }
-
-      // Draw frontier nodes (Queue)
-      ctx.fillStyle = '#38bdf8';
-      ctx.shadowColor = '#38bdf8';
-      ctx.shadowBlur = 6;
-      for (let q of bfsQueue) {
-        ctx.fillRect(q.c * cellSize + 3, q.r * cellSize + 3, cellSize - 6, cellSize - 6);
-      }
-      ctx.shadowBlur = 0;
-    } else {
-      // DFS Path rendering
-      if (dfsCurrentPath.length > 0) {
-        ctx.fillStyle = 'rgba(69, 223, 164, 0.6)';
-        for (let coord of dfsCurrentPath) {
-          const [r, c] = coord.split(',').map(Number);
-          ctx.fillRect(c * cellSize + 3, r * cellSize + 3, cellSize - 6, cellSize - 6);
-        }
-      }
-
-      // Active probe head (Top of stack)
-      if (dfsStack.length > 0) {
-        const top = dfsStack[dfsStack.length - 1];
-        ctx.fillStyle = '#68fcbf';
-        ctx.shadowColor = '#68fcbf';
-        ctx.shadowBlur = 10;
-        ctx.fillRect(top.c * cellSize + 2, top.r * cellSize + 2, cellSize - 4, cellSize - 4);
-        ctx.shadowBlur = 0;
-      }
-    }
-
-    // Start Node (Green S)
-    const sx = START.c * cellSize;
-    const sy = START.r * cellSize;
-    ctx.fillStyle = '#45dfa4';
-    ctx.fillRect(sx + 2, sy + 2, cellSize - 4, cellSize - 4);
-    ctx.fillStyle = '#003825';
-    ctx.font = 'bold 12px Space Grotesk';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('S', sx + cellSize / 2, sy + cellSize / 2);
-
-    // Goal Node (Red G)
-    const gx = GOAL.c * cellSize;
-    const gy = GOAL.r * cellSize;
-    ctx.fillStyle = '#ffb4ab';
-    ctx.fillRect(gx + 2, gy + 2, cellSize - 4, cellSize - 4);
-    ctx.fillStyle = '#690005';
-    ctx.font = 'bold 12px Space Grotesk';
-    ctx.fillText('G', gx + cellSize / 2, gy + cellSize / 2);
-  }
-
-  function updateInspectors() {
-    // BFS Queue inspector
-    document.getElementById('bfs-queue-count').textContent = bfsQueue.length;
-    const queueContainer = document.getElementById('bfs-queue-items');
-    queueContainer.innerHTML = '';
-    const sliceQueue = bfsQueue.slice(0, 7);
-    if (sliceQueue.length === 0) {
-      queueContainer.innerHTML = '<span class="text-outline text-[11px] italic">Queue Empty</span>';
-    } else {
-      sliceQueue.forEach((node, idx) => {
-        const span = document.createElement('span');
-        span.className = idx === 0 
-          ? 'px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-bold text-[11px] shadow-sm animate-pulse'
-          : 'px-2 py-0.5 rounded bg-surface-container-high text-primary text-[11px]';
-        span.textContent = `(${node.r},${node.c})`;
-        queueContainer.appendChild(span);
-      });
-      if (bfsQueue.length > 7) {
-        const more = document.createElement('span');
-        more.className = 'text-outline text-[10px]';
-        more.textContent = `+${bfsQueue.length - 7} more`;
-        queueContainer.appendChild(more);
-      }
-    }
-
-    // DFS Stack inspector
-    document.getElementById('dfs-stack-count').textContent = dfsStack.length;
-    document.getElementById('dfs-depth').textContent = dfsStack.length;
-    const stackContainer = document.getElementById('dfs-stack-items');
-    stackContainer.innerHTML = '';
-    const sliceStack = dfsStack.slice(-7).reverse();
-    if (sliceStack.length === 0) {
-      stackContainer.innerHTML = '<span class="text-outline text-[11px] italic">Stack Empty</span>';
-    } else {
-      sliceStack.forEach((node, idx) => {
-        const span = document.createElement('span');
-        span.className = idx === 0 
-          ? 'px-2 py-0.5 rounded bg-secondary text-on-secondary font-bold text-[11px] shadow-sm'
-          : 'px-2 py-0.5 rounded bg-surface-container-high text-secondary text-[11px]';
-        span.textContent = `(${node.r},${node.c})`;
-        stackContainer.appendChild(span);
-      });
-      if (dfsStack.length > 7) {
-        const more = document.createElement('span');
-        more.className = 'text-outline text-[10px]';
-        more.textContent = `...${dfsStack.length - 7} deep`;
-        stackContainer.appendChild(more);
-      }
-    }
-  }
-
-  function updateMetricsUI() {
-    let bfsVisCount = 0;
-    let dfsVisCount = 0;
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
-        if (bfsVisited[r][c]) bfsVisCount++;
-        if (dfsVisited[r][c]) dfsVisCount++;
-      }
-    }
-
-    document.getElementById('metric-bfs-visited').textContent = bfsVisCount;
-    document.getElementById('metric-dfs-visited').textContent = dfsVisCount;
-
-    const total = (bfsVisCount + dfsVisCount) || 1;
-    const bfsPct = Math.round((bfsVisCount / total) * 100);
-    document.getElementById('bar-bfs-visited').style.width = bfsPct + '%';
-    document.getElementById('bar-dfs-visited').style.width = (100 - bfsPct) + '%';
-
-    if (bfsVisCount > dfsVisCount) {
-      document.getElementById('visited-diff-msg').textContent = `DFS가 ${bfsVisCount - dfsVisCount}개 노드 적게 탐색`;
-    } else if (dfsVisCount > bfsVisCount) {
-      document.getElementById('visited-diff-msg').textContent = `BFS가 ${dfsVisCount - bfsVisCount}개 노드 적게 탐색`;
-    }
-
-    document.getElementById('metric-bfs-ops').textContent = bfsOps;
-    document.getElementById('metric-dfs-ops').textContent = dfsOps;
-
-    document.getElementById('metric-bfs-time').textContent = bfsElapsed.toFixed(2) + 'ms';
-    document.getElementById('metric-dfs-time').textContent = dfsElapsed.toFixed(2) + 'ms';
-
-    // Path steps
-    if (bfsOptimalPath.length > 0) {
-      document.getElementById('metric-bfs-path').textContent = bfsOptimalPath.length;
-    }
-    if (dfsDone && dfsCurrentPath.length > 0) {
-      document.getElementById('metric-dfs-path').textContent = dfsCurrentPath.length;
-    }
-    if (bfsOptimalPath.length > 0 && dfsDone) {
-      const delta = dfsCurrentPath.length - bfsOptimalPath.length;
-      if (delta === 0) {
-        document.getElementById('metric-path-delta').textContent = '동일 최단 경로';
-        document.getElementById('metric-path-delta').className = 'text-secondary font-bold';
-      } else {
-        document.getElementById('metric-path-delta').textContent = `+${delta} steps (DFS 비최적)`;
-        document.getElementById('metric-path-delta').className = 'text-tertiary font-bold';
-      }
-    }
-  }
-
-  function renderHistogram() {
-    const maxVal = Math.max(10, ...historyBfs, ...historyDfs);
-    const w = 600;
-    const h = 120;
-    const len = historyBfs.length;
-    if (len < 2) return;
-
-    let bfsPts = [];
-    let dfsPts = [];
-
-    for (let i = 0; i < len; i++) {
-      const x = (i / (len - 1)) * w;
-      const yBfs = h - (historyBfs[i] / maxVal) * (h - 20);
-      const yDfs = h - (historyDfs[i] / maxVal) * (h - 20);
-      bfsPts.push({ x, y: yBfs });
-      dfsPts.push({ x, y: yDfs });
-    }
-
-    const bfsLineD = bfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
-    const dfsLineD = dfsPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
-
-    const bfsAreaD = `${bfsLineD} L${w},${h} L0,${h} Z`;
-    const dfsAreaD = `${dfsLineD} L${w},${h} L0,${h} Z`;
-
-    document.getElementById('svg-bfs-line').setAttribute('d', bfsLineD);
-    document.getElementById('svg-dfs-line').setAttribute('d', dfsLineD);
-    document.getElementById('svg-bfs-area').setAttribute('d', bfsAreaD);
-    document.getElementById('svg-dfs-area').setAttribute('d', dfsAreaD);
-  }
-
-  function appendLog(text) {
-    const logs = document.getElementById('telemetry-logs');
-    const div = document.createElement('div');
-    div.className = 'flex items-center gap-2 text-on-surface-variant';
-    const time = ((performance.now() - bfsStartTime) / 1000).toFixed(3);
-    div.innerHTML = `<span class="text-secondary">[${Math.max(0, time)}s]</span><span>${text}</span>`;
-    logs.appendChild(div);
-    logs.scrollTop = logs.scrollHeight;
-  }
-
-  // Initial startup
-  initMaze();
-  resetSimulation();
-</script></main></div></body></html>
+  </script>
+</body>
+</html>
